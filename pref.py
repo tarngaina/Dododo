@@ -7,12 +7,12 @@ data_channel = None
 data_message = None
 
 
-async def data_prepare(channels)
+async def data_prepare(channels):
   find_data_channel(channels)
   await find_data_message()
 
 
-def find_data_channel(channels)
+def find_data_channel(channels):
   global data_channel
   for channel in channels
     if channel.id == CHANNEL_ID:
