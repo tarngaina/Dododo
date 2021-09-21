@@ -649,6 +649,7 @@ async def _load(ctx, *, pref = None):
     return
   
   res, dic = await load_pref()
+  print(dic)
   if ctx.guild.id not in dic:
     embed = Embed(
       title = 'No pref saved on this guild.',
