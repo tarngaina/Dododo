@@ -602,6 +602,7 @@ async def _save(ctx, *, pref = None):
   
   
   res, dic = await load_pref()
+  dic[ctx.guild.id] = {}
   dic[ctx.guild.id][pref] = []
   for song in p.songs:
     dic[ctx.guild.id][pref].append(song.to_dic())
