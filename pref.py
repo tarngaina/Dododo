@@ -27,7 +27,7 @@ async def find_data_message():
       
   if not data_message:
     with open(f'data.json', 'w+', encoding = 'utf-8') as f:
-      json.dump(dic, f, ensure_ascii = False, indent = 2)
+      dump(dic, f, ensure_ascii = False, indent = 2)
     data_message = await data_channel.send('read', file = File('data.json'))
         
 async def load_pref():
