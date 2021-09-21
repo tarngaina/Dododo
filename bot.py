@@ -577,7 +577,7 @@ async def _shuffle(ctx):
   await ctx.message.add_reaction('🔀')
     
 @bot.command(name = 'save')
-@commands.cooldown(1, 5, commands.BucketType.server)
+@commands.cooldown(1, 5, commands.BucketType.guild)
 async def _save(ctx, *, pref = None):
   p = player.find_guild(ctx.author.guild.id)
   if not p:
