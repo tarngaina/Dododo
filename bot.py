@@ -221,7 +221,7 @@ async def _play(ctx, *, text):
       else:
         res2, urls = youtube.search(text)
         if res2:
-          res, songs = await youtube.get_info(urls)
+          res, songs = await youtube.get_info(urls[0])
           songs = [songs]
         else:
           msg = urls
@@ -612,7 +612,8 @@ async def _save(ctx, *, pref = None):
     await ctx.send(embed = embed)
     return
   
-  dic[ctx.guild.id] = {}
+  if ctx.guild.id not in dic:
+    dic[ctx.guild.id] = {}
   dic[ctx.guild.id][pref] = []
   for song in p.songs:
     dic[ctx.guild.id][pref].append(song.to_dic())
@@ -649,7 +650,9 @@ async def _load(ctx, *, pref = None):
     return
   
   res, dic = await load_pref()
-  print(dic)
+  print(type(ctx.guild.id))
+  for key in dic:
+    print(key, type(key))
   if ctx.guild.id not in dic:
     embed = Embed(
       title = 'No pref saved on this guild.',
