@@ -576,6 +576,12 @@ async def _shuffle(ctx):
     
 @bot.command(name = 'save')
 async def _save(ctx, *, pref = None):
+  embed = Embed(
+    title = 'This feature is currenlt locked due to upgrading, please wait.',
+    color = random_color()
+  )
+  await ctx.send(embed = embed)
+  return
   p = player.find_guild(ctx.author.guild.id)
   if not p:
     return
@@ -611,6 +617,12 @@ async def _save(ctx, *, pref = None):
   
 @bot.command(name = 'load')
 async def _load(ctx, *, pref = None):
+  embed = Embed(
+    title = 'This feature is currenlt locked due to upgrading, please wait.',
+    color = random_color()
+  )
+  await ctx.send(embed = embed)
+  return
   if not ctx.voice_client:
     if ctx.author.voice:
       await ctx.author.voice.channel.connect()
