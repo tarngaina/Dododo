@@ -14,7 +14,7 @@ async def data_prepare(channels):
 
 def find_data_channel(channels):
   global data_channel
-  for channel in channels
+  for channel in channels:
     if channel.id == CHANNEL_ID:
       data_channel = channel
       break
