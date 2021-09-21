@@ -7,7 +7,7 @@ import youtube, player
 from util import to_int, random_color
 from song import from_dic
 from random import shuffle
-from pref import prepare, save_pref, load_pref
+from pref import data_prepare, save_pref, load_pref
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
