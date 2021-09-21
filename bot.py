@@ -604,7 +604,6 @@ async def _save(ctx, *, pref = None):
   
   res, dic = await load_pref()
   if not res:
-    print(dic)
     embed = Embed(
       title = dic,
       color = random_color()
@@ -613,8 +612,8 @@ async def _save(ctx, *, pref = None):
     await ctx.send(embed = embed)
     return
   
-  dic[str(ctx.guild.id)] = {}
-  dic[str(ctx.guild.id)][pref] = []
+  dic[ctx.guild.id] = {}
+  dic[ctx.guild.id][pref] = []
   for song in p.songs:
     dic[ctx.guild.id][pref].append(song.to_dic())
 
@@ -650,22 +649,29 @@ async def _load(ctx, *, pref = None):
     return
   
   res, dic = await load_pref()
-  if (pref == None) or (pref == ''):
+  if ctx.guild.id not in dic:
     embed = Embed(
-      title = 'Need pref name to be loaded.',
-      description = f'All pref on this guild:\n{", ".join(dic[str(ctx.guild.id)].keys())}',
+      title = 'No pref saved on this guild.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
     return
   
-  for key in dic:
-    print(key, type(key))
-  if pref not in dic[str(ctx.guild.id)]:
+  if (pref == None) or (pref == ''):
+    embed = Embed(
+      title = 'Need pref name to be loaded.',
+      description = f'All pref on this guild:\n{", ".join(dic[ctx.guild.id].keys())}',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+  
+  if pref not in dic[ctx.guild.id]:
     embed = Embed(
       title = f'No pref found with: {pref}.',
-      description = f'All pref on this guild:\n{", ".join(dic[str(ctx.guild.id)].keys())}',
+      description = f'All pref on this guild:\n{", ".join(dic[ctx.guild.id].keys())}',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
