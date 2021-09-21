@@ -19,9 +19,6 @@ def random_color():
   return Color.from_rgb(randint(0, 255), randint(0, 255), randint(0, 255))
 
 
-def strip_ansi(s):
-  return compile(r'\x1B\[\d+(;\d+){0,2}m').sub('', s)
-
 def save_prefs(id, prefs):
   if len(prefs) > 0:
     with open(f'data/{id}.json', 'w+', encoding = 'utf-8') as f:
