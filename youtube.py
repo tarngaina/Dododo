@@ -11,8 +11,9 @@ def search(text, limit = 25, single = False):
   try:
     if single:
       id = src(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
-      id = id.group(0).split('=')[1]
-      print(id)
+      id = id.group(0)
+      if '=' in id:
+        id = id.split('=')[1]
       if id:
         return True, f'https://youtu.be/{id}'
       else:
@@ -23,8 +24,6 @@ def search(text, limit = 25, single = False):
       return False, f'No song found with: {text}.'
     urls = []
     for id in ids:
-      print(id)
-      id = id.split('=')[1]
       url = f'https://youtu.be/{id}'
       if url not in urls:
         urls.append(url)
