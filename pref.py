@@ -1,5 +1,6 @@
 from discord import File, Forbidden
 from json import loads, dump
+from traceback import format_exc as exc
 
 CHANNEL_ID = 889792058565488660
 data_channel = None
@@ -50,6 +51,7 @@ async def load_pref():
     await find_data_message()
     return False, 'Something is wrong right now, try again.'
   except Exception as e:
+    print(exc())
     return False, str(e)
 
 async def save_pref(dic):
@@ -71,6 +73,7 @@ async def save_pref(dic):
     await find_data_message()
     return False, 'Something is wrong right now, try again.'
   except Exception as e:
+    print(exc())
     return False, str(e)
 
 
