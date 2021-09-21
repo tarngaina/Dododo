@@ -7,18 +7,8 @@ from traceback import format_exc as exc
 from re import compile, findall, search as src
 
 
-def search(text, limit = 25, single = False):
+def search(text, limit = 25):
   try:
-    if single:
-      id = src(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
-      id = id.group(0)
-      if '=' in id:
-        id = id.split('=')[1]
-      if id:
-        return True, f'https://youtu.be/{id}'
-      else:
-        return False, f'No song found with: {text}.'
-      
     ids = findall(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
     if not ids or (len(ids) == 0):
       return False, f'No song found with: {text}.'
