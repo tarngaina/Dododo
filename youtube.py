@@ -5,7 +5,6 @@ from urllib import parse, request
 from asyncio import get_event_loop
 from traceback import format_exc as exc
 from re import compile, findall
-from util import strip_ansi
 
 
 def search(text, limit = 25):
@@ -23,7 +22,7 @@ def search(text, limit = 25):
     return True, urls
   except Exception as e:
     print(exc())
-    return False, strip_ansi(str(e))
+    return False, str(e)
 
 ytdl_extract = YoutubeDL(
   {
@@ -52,7 +51,7 @@ async def get_info(url):
     return True, song
   except Exception as e:
     print(exc())
-    return False, strip_ansi(str(e))
+    return False, str(e)
 
 async def get_info_playlist(url):
   try:
@@ -70,7 +69,7 @@ async def get_info_playlist(url):
     return True, songs
   except Exception as e:
     print(exc())
-    return False, strip_ansi(str(e))
+    return False, str(e)
     
 
 ytdl_source = YoutubeDL(
@@ -101,5 +100,5 @@ async def get_source(url, song = None):
     return True, FFmpegOpusAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), song
   except Exception as e:
     print(exc())
-    return False, strip_ansi(str(e)), song
+    return False, str(e), song
   
