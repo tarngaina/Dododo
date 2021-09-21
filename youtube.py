@@ -11,6 +11,7 @@ def search(text, limit = 25, single = False):
   try:
     if single:
       id = src(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
+      id = id.group(0)
       if id:
         return True, f'https://youtu.be/{id}'
       else:
