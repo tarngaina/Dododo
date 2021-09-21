@@ -39,7 +39,7 @@ async def on_ready():
       name = "Watame Lullaby"
     )
   )
-  await data_prepare()
+  await data_prepare(bot.get_all_channels())
   
 
 help_page = 1
