@@ -216,9 +216,9 @@ async def _play(ctx, *, text):
         embed.set_author(name = '❗ Error')
         await ctx.send(embed = embed)
       else:
-        res2, urls = youtube.search(text)
+        res2, url = youtube.search(text, single = True)
         if res2:
-          res, songs = await youtube.get_info(urls[0])
+          res, songs = await youtube.get_info(url)
           songs = [songs]
         else:
           msg = urls
