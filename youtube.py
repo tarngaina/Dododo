@@ -22,6 +22,7 @@ def search(text, limit = 25, single = False):
       return False, f'No song found with: {text}.'
     urls = []
     for id in ids:
+      id = id.split('=')[1]
       url = f'https://youtu.be/{id}'
       if url not in urls:
         urls.append(url)
@@ -49,7 +50,6 @@ async def get_info(url):
   try:
     url = r'https://youtu.be/' + url.split('=')[1][:11] if 'list=' in url else url
     entry = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
-    print(url, entry)
     song = Song(
       entry['title'],
       entry['uploader'],
