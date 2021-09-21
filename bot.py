@@ -602,6 +602,16 @@ async def _save(ctx, *, pref = None):
   
   
   res, dic = await load_pref()
+  if not res:
+    print(dic)
+    embed = Embed(
+      title = dic,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+  
   dic[str(ctx.guild.id)] = {}
   dic[str(ctx.guild.id)][pref] = []
   for song in p.songs:
