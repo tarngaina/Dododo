@@ -612,11 +612,12 @@ async def _save(ctx, *, pref = None):
     await ctx.send(embed = embed)
     return
   
-  if ctx.guild.id not in dic:
-    dic[ctx.guild.id] = {}
-  dic[ctx.guild.id][pref] = []
+  key = str(ctx.guild.id)
+  if key not in dic:
+    dic[key] = {}
+  dic[key][pref] = []
   for song in p.songs:
-    dic[ctx.guild.id][pref].append(song.to_dic())
+    dic[key][pref].append(song.to_dic())
 
   await save_pref(dic)
   embed = Embed(
@@ -650,10 +651,17 @@ async def _load(ctx, *, pref = None):
     return
   
   res, dic = await load_pref()
-  print(type(ctx.guild.id))
-  for key in dic:
-    print(key, type(key))
-  if ctx.guild.id not in dic:
+  key = str(ctx.guild.id)
+  if key not in dic:
+    embed = Embed(
+      title = 'No pref saved on this guild.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+  
+  if len(dic[key]) <= 0:
     embed = Embed(
       title = 'No pref saved on this guild.',
       color = random_color()
@@ -665,17 +673,17 @@ async def _load(ctx, *, pref = None):
   if (pref == None) or (pref == ''):
     embed = Embed(
       title = 'Need pref name to be loaded.',
-      description = f'All pref on this guild:\n{", ".join(dic[ctx.guild.id].keys())}',
+      description = f'All pref on this guild:\n{", ".join(dic[key].keys())}',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
     return
   
-  if pref not in dic[ctx.guild.id]:
+  if pref not in dic[key]:
     embed = Embed(
-      title = f'No pref found with: {pref}.',
-      description = f'All pref on this guild:\n{", ".join(dic[ctx.guild.id].keys())}',
+      title = f'No pref found in this guild with: {pref}.',
+      description = f'All pref on this guild:\n{", ".join(dic[key].keys())}',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -684,7 +692,7 @@ async def _load(ctx, *, pref = None):
 
   songs = []
   async with ctx.typing():
-    for song_dic in dic[ctx.guild.id][pref]:
+    for song_dic in dic[key][pref]:
       songs.append(from_dic(song_dic))
    
   embed = Embed(
