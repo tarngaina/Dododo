@@ -1,19 +1,22 @@
+from discord import File, Forbidden
+from json import loads, dump
+
 CHANNEL_ID = 889792058565488660
 data_channel = None
 data_message = None
 
 
-from discord import File
-from json import loads, dump
+async def prepare(channels)
+  find_data_channel(channels)
+  await find_data_message()
 
 
-def find_data_channel(bot):
+def find_data_channel(channels)
   global data_channel
-  for guild in bot.guilds:
-    for channel in guild.channels:
-      if channel.id == CHANNEL_ID:
-        data_channel = channel
-
+  for channel in channels
+    if channel.id == CHANNEL_ID:
+      data_channel = channel
+      break
 
 async def find_data_message():
   global data_message
@@ -27,7 +30,7 @@ async def find_data_message():
       
   if not data_message:
     with open(f'data.json', 'w+', encoding = 'utf-8') as f:
-      dump({}, f, ensure_ascii = False, indent = 2)
+      f.write('{}')
     data_message = await data_channel.send('read', file = File('data.json'))
         
       
@@ -42,6 +45,10 @@ async def load_pref():
     files = await data_message.attachments[0].to_file()
     dic = loads(files.fp.read())
     return True, dic
+
+  except Forbidden:
+    await find_data_message()
+    return False, 'Something is wrong right now, try again.'
   except Exception as e:
     return False, str(e)
 
@@ -59,6 +66,10 @@ async def save_pref(dic):
     await data_message.delete()
     data_message = await data_channel.send('read', file = File('data.json'))
     return True, ''
+
+  except Forbidden:
+    await find_data_message()
+    return False, 'Something is wrong right now, try again.'
   except Exception as e:
     return False, str(e)
 
