@@ -4,7 +4,6 @@ from youtube import get_source
 from util import random_color
 
 players = []
-bot = None
 
 
 def find_channel(id):
@@ -112,7 +111,7 @@ class Player:
           color = random_color()
         )
         embed.set_author(name = '❗ Error')
-        bot.loop.create_task(self.text_channel.send(embed = embed))
+        get_event_loop().create_task(self.text_channel.send(embed = embed))
         return
       
     if self.jump_index == -1:
