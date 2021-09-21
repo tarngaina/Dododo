@@ -4,13 +4,13 @@ from song import Song
 from urllib import parse, request
 from asyncio import get_event_loop
 from traceback import format_exc as exc
-from re import compile, findall
+from re import compile, findall, search as src
 
 
 def search(text, limit = 25, single = False):
   try:
     if single:
-      id = search(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
+      id = src(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
       if id:
         return True, r'https://youtu.be/' + id
       else:
