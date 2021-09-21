@@ -637,7 +637,7 @@ async def _load(ctx, *, pref = None):
     await ctx.send(embed = embed)
     return
   
-  dic = load_prefs()
+  dic = load_pref()
   if (pref == None) or (pref == ''):
     embed = Embed(
       title = 'Need pref name to be loaded.',
