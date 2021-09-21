@@ -217,6 +217,7 @@ async def _play(ctx, *, text):
         await ctx.send(embed = embed)
       else:
         res2, url = youtube.search(text, single = True)
+        print(url)
         if res2:
           res, songs = await youtube.get_info(url)
           songs = [songs]
