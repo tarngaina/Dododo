@@ -614,7 +614,7 @@ async def _save(ctx, *, pref = None):
   await ctx.send(embed = embed)
   
 @bot.command(name = 'load')
-@commands.cooldown(1, 5, commands.BucketType.server)
+@commands.cooldown(1, 5, commands.BucketType.guild)
 async def _load(ctx, *, pref = None):
   if not ctx.voice_client:
     if ctx.author.voice:
