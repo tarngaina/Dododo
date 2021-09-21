@@ -219,12 +219,12 @@ async def _play(ctx, *, text):
         embed.set_author(name = '❗ Error')
         await ctx.send(embed = embed)
       else:
-        res2, url = youtube.search(text, single = True)
+        res2, urls = youtube.search(text)
         if res2:
-          res, songs = await youtube.get_info(url)
+          res, songs = await youtube.get_info(urls)
           songs = [songs]
         else:
-          msg = url
+          msg = urls
           embed = Embed(
             title = msg,
             color = random_color()
