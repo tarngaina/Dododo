@@ -11,7 +11,7 @@ def search(text, limit = 25, single = False):
   try:
     if single:
       id = src(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
-      id = id.group(0)
+      id = id.group(0).split('=')[1]
       if id:
         return True, f'https://youtu.be/{id}'
       else:
@@ -49,6 +49,7 @@ async def get_info(url):
   try:
     url = r'https://youtu.be/' + url.split('=')[1][:11] if 'list=' in url else url
     entry = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
+    print(url, entry)
     song = Song(
       entry['title'],
       entry['uploader'],
