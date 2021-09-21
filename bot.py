@@ -613,6 +613,7 @@ async def _save(ctx, *, pref = None):
     return
   
   key = str(ctx.guild.id)
+  pref = str(pref)
   if key not in dic:
     dic[key] = {}
   dic[key][pref] = []
@@ -652,6 +653,7 @@ async def _load(ctx, *, pref = None):
   
   res, dic = await load_pref()
   key = str(ctx.guild.id)
+  pref = str(pref)
   if key not in dic:
     embed = Embed(
       title = 'No pref saved on this guild.',
