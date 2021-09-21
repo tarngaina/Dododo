@@ -7,7 +7,7 @@ import youtube, player
 from util import to_int, random_color
 from song import from_dic
 from random import shuffle
-from pref import find_data_channel, find_data_message, save_pref, load_pref
+from pref import prepare, save_pref, load_pref
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
@@ -39,8 +39,7 @@ async def on_ready():
       name = "Watame Lullaby"
     )
   )
-  find_data_channel(bot)
-  await find_data_message()
+  await data_prepare()
   
 
 help_page = 1
