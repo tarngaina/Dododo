@@ -221,7 +221,7 @@ async def _play(ctx, *, text):
           res, songs = await youtube.get_info(url)
           songs = [songs]
         else:
-          msg = urls
+          msg = url
           embed = Embed(
             title = msg,
             color = random_color()
