@@ -6,7 +6,7 @@ data_channel = None
 data_message = None
 
 
-async def prepare(channels)
+async def data_prepare(channels)
   find_data_channel(channels)
   await find_data_message()
 
