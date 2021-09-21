@@ -12,7 +12,6 @@ from pref import prepare, save_pref, load_pref
 bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
 InteractionClient(bot)
-player.bot = bot
 
   
 @bot.event
