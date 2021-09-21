@@ -39,7 +39,7 @@ async def load_pref():
 
   try:
     files = await data_message.attachments[0].to_file()
-    dic = json.loads(files.fp.read())
+    dic = loads(files.fp.read())
     return True, dic
   except Exception as e:
     return False, str(e)
@@ -54,7 +54,7 @@ async def save_pref(dic):
 
   try:
     with open(f'data.json', 'w+', encoding = 'utf-8') as f:
-      json.dump(dic, f, ensure_ascii = False, indent = 2)
+      dump(dic, f, ensure_ascii = False, indent = 2)
     await data_message.delete()
     data_message = await data_channel.send('read', file = File('data.json'))
     return True, ''
