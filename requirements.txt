@@ -1,0 +1,6 @@
+pip
+youtube_dl
+discord.py[voice]
+ffmpeg
+PyNaCl
+dislash.py
