@@ -4,9 +4,10 @@ from discord import Embed, Intents, Activity, ActivityType
 from dislash import InteractionClient, SelectMenu, SelectOption, ActionRow, Button, ButtonStyle
 
 import youtube, player
-from util import to_int, random_color, save_prefs, load_prefs
+from util import to_int, random_color
 from song import from_dic
 from random import shuffle
+from pref import find_data_channel, save_pref, load_pref
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
@@ -38,7 +39,8 @@ async def on_ready():
       name = "Watame Lullaby"
     )
   )
-
+  find_data_channel(bot)
+  
 
 help_page = 1
 @bot.command(name = 'help', aliases = ['h'])
@@ -575,13 +577,8 @@ async def _shuffle(ctx):
   await ctx.message.add_reaction('🔀')
     
 @bot.command(name = 'save')
+@commands.cooldown(1, 5, commands.BucketType.server)
 async def _save(ctx, *, pref = None):
-  embed = Embed(
-    title = 'This feature is currenlt locked due to upgrading, please wait.',
-    color = random_color()
-  )
-  await ctx.send(embed = embed)
-  return
   p = player.find_guild(ctx.author.guild.id)
   if not p:
     return
@@ -603,12 +600,13 @@ async def _save(ctx, *, pref = None):
     await ctx.send(embed = embed)
     return
   
-  prefs = load_prefs(ctx.guild.id)
-  prefs[pref] = []
+  
+  res, dic = await load_pref()
+  dic[ctx.guild.id][pref] = []
   for song in p.songs:
-    prefs[pref].append(song.to_dic())
+    dic[ctx.guild.id][pref].append(song.to_dic())
 
-  save_prefs(ctx.guild.id, prefs)
+  await save_pref(dic)
   embed = Embed(
     title = f'📄 Current queue has been saved to pref:\n{pref}',
     color = random_color()
@@ -616,13 +614,8 @@ async def _save(ctx, *, pref = None):
   await ctx.send(embed = embed)
   
 @bot.command(name = 'load')
+@commands.cooldown(1, 5, commands.BucketType.server)
 async def _load(ctx, *, pref = None):
-  embed = Embed(
-    title = 'This feature is currenlt locked due to upgrading, please wait.',
-    color = random_color()
-  )
-  await ctx.send(embed = embed)
-  return
   if not ctx.voice_client:
     if ctx.author.voice:
       await ctx.author.voice.channel.connect()
@@ -644,21 +637,21 @@ async def _load(ctx, *, pref = None):
     await ctx.send(embed = embed)
     return
   
-  prefs = load_prefs(ctx.guild.id)
+  dic = load_prefs()
   if (pref == None) or (pref == ''):
     embed = Embed(
       title = 'Need pref name to be loaded.',
-      description = f'All pref on this guild:\n{", ".join(prefs.keys())}',
+      description = f'All pref on this guild:\n{", ".join(dic[ctx.guild.id].keys())}',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
     return
   
-  if pref not in prefs:
+  if pref not in dic[ctx.guild.id]:
     embed = Embed(
       title = f'No pref found with: {pref}.',
-      description = f'All pref on this guild:\n{", ".join(prefs.keys())}',
+      description = f'All pref on this guild:\n{", ".join(dic[ctx.guild.id].keys())}',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -667,7 +660,7 @@ async def _load(ctx, *, pref = None):
 
   songs = []
   async with ctx.typing():
-    for song_dic in prefs[pref]:
+    for song_dic in dic[ctx.guild.id][pref]:
       songs.append(from_dic(song_dic))
    
   embed = Embed(
