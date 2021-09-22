@@ -325,8 +325,9 @@ async def _jump(ctx, param = None):
       await ctx.send(embed = embed)
       return
     
+    
     if p.voice_client.is_playing():
-      p.jump_index = i
+      p.current = i-1
       p.voice_client.stop()
     else:
       p.current = i
@@ -670,7 +671,7 @@ async def _load(ctx, *, pref = None):
     await ctx.send(embed = embed)
     return
   
-  if (pref == None) or (pref == ''):
+  if (pref == 'None') or (pref == ''):
     embed = Embed(
       title = 'Need pref name to be loaded.',
       description = f'All pref on this guild:\n{", ".join(dic[key].keys())}',
