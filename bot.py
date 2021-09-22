@@ -155,7 +155,7 @@ async def _leave(ctx):
       
 @bot.command(name = 'search', aliases = ['s', 'find', 'f'])
 async def _search(ctx, *, query):
-  if (query == None) or (query = ''):
+  if (query == None) or (query == ''):
     embed = Embed(
       title = 'No param found, you need to enter a query to be searched.',
       color = random_color()
@@ -228,7 +228,7 @@ async def _play(ctx, *, text):
     await ctx.send(embed = embed)
     return
   
-  if (text == None) or (text = ''):
+  if (text == None) or (text == ''):
     embed = Embed(
       title = 'No param found, you need to enter an url or a query to be searched.',
       color = random_color()
