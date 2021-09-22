@@ -13,6 +13,28 @@ bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
 InteractionClient(bot)
 
+
+@bot.event
+async def on_command_error(ctx, error):
+  if isinstance(error, commands.CommandNotFound):
+    embed = Embed(
+      title = 'Invalid command, use help command to see list of commands.'
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+  if isinstance(error, commands.MissingRequiredArgument):
+    embed = Embed(
+      title = 'Param not found, use help command to know how to use commands.'
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+  if isinstance(error, commands.CommandOnCooldown):
+    embed = Embed(
+      title = f'This command is on cooldown to ensure safety of bot.\nPlese try again in {error.retry_after:.2f}s.'
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+  
   
 @bot.event
 async def on_voice_state_update(member, before, after):
