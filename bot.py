@@ -18,19 +18,15 @@ InteractionClient(bot)
 async def on_command_error(ctx, error):
   if isinstance(error, commands.CommandNotFound):
     embed = Embed(
-      title = 'Invalid command, use help command to see list of commands.'
-    )
-    embed.set_author(name = '❗ Error')
-    await ctx.send(embed = embed)
-  if isinstance(error, commands.MissingRequiredArgument):
-    embed = Embed(
-      title = 'Param not found, use help command to know how to use commands.'
+      title = 'Command not found, use help command to see list of commands.',
+      color = random_color
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
   if isinstance(error, commands.CommandOnCooldown):
     embed = Embed(
-      title = f'This command is on cooldown to ensure safety of bot.\nPlese try again in {error.retry_after:.2f}s.'
+      title = f'This command is on cooldown to ensure safety of bot.\nPlese try again in {error.retry_after:.2f}s.',
+      color = random_color
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
@@ -159,6 +155,15 @@ async def _leave(ctx):
       
 @bot.command(name = 'search', aliases = ['s', 'find', 'f'])
 async def _search(ctx, *, query):
+  if (query == None) or (query = ''):
+    embed = Embed(
+      title = 'No param found, you need to enter a query to be searched.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+  
   res, urls = youtube.search(query, limit = 8)
   if not res:
     msg = urls
@@ -217,6 +222,15 @@ async def _play(ctx, *, text):
   if not p:
     embed = Embed(
       title = 'Something is wrong, please make bot rejoin voice channel to reset settings.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+  
+  if (text == None) or (text = ''):
+    embed = Embed(
+      title = 'No param found, you need to enter an url or a query to be searched.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -507,10 +521,10 @@ async def _remove(ctx, param = None):
   song = p.songs[i]
   p.songs.remove(p.songs[i])
   if i <= p.current:
-    p.current -= 1
     if i == p.current:
       if p.voice_client.is_playing():
         p.voice_client.stop()
+    p.current -= 1
   embed = Embed(
     title = song.to_str(),
     url = song.url,
