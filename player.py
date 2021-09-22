@@ -49,12 +49,9 @@ async def _update(bot, interval):
 class Player:
   def __init__(self, voice_client):
     self.voice_client = voice_client
-    
+   
     self.text_channel = None
-    self.volume = 1.0 
-    self.stream = False
-    self.loop = 0
-    
+    self.loop = 0 
     self.songs = []
     self.current = 0
     self.is_playing = False
@@ -63,8 +60,6 @@ class Player:
     self.idle2 = 0
     self.member = 0
     self.task_block = False
-
-    self.jump_index = -1
     self.current_page = 0
     self.max_page = 0
 
@@ -114,11 +109,7 @@ class Player:
         get_event_loop().create_task(self.text_channel.send(embed = embed))
         return
       
-    if self.jump_index == -1:
-      self.next()
-    else:
-      self.jump_song()
-      self.jump_index = -1
+    self.next()
     self.is_playing = False
 
   def next(self):
@@ -129,11 +120,8 @@ class Player:
       if self.loop == 2:
         if self.current >= len(self.songs):
           self.current = 0
-    if self.loop == 1:
+    else:
       if self.current >= len(self.songs):
         self.current = len(self.songs)-1
-          
-  def jump_song(self):
-    self.current = self.jump_index
 
  
