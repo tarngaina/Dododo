@@ -1,6 +1,6 @@
 from os import getenv
 
-OWNER_ID = getenv('owner_id)
+OWNER_ID = getenv('owner_id')
 owner = None
 
 CHANNEL_ID = 890542648769806347
