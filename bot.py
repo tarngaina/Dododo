@@ -58,7 +58,7 @@ async def on_ready():
     )
   )
   await data_prepare(bot.get_all_channels())
-  reminder.data_prepare(bot)
+  await reminder.data_prepare(bot)
   
 
 help_page = 1
