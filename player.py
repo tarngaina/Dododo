@@ -69,7 +69,7 @@ class Player:
     res, audio_source, song = await get_source(song.url, song = song)
     if not res:
       if self.text_channel:
-        msg = source
+        msg = audio_source
         embed = Embed(
           title = f'{self.songs[self.current].to_str()}',
           description = msg,
