@@ -13,7 +13,6 @@ def data_prepare(bot):
   print(owner.name, channel.name)
     
 async def send():
-  global
   if not channel:
     return
   if not owner:
