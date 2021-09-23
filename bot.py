@@ -8,6 +8,7 @@ from util import to_int, random_color
 from song import from_dic
 from random import shuffle
 from pref import data_prepare, save_pref, load_pref
+import reminder
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
@@ -57,6 +58,7 @@ async def on_ready():
     )
   )
   await data_prepare(bot.get_all_channels())
+  reminder.data_prepare(bot)
   
 
 help_page = 1
