@@ -33,7 +33,8 @@ ytdl_extract = YoutubeDL(
     'skip_download': True,
     'logtostderr':False,
     'no_warnings': True,
-    'verbose':False
+    'verbose':False,
+    'source_address': '0.0.0.0'
   }
 )
 
@@ -76,7 +77,6 @@ ytdl_source = YoutubeDL(
   {
     'format': 'bestaudio/best',
     'extractaudio': True,
-    'audioformat': 'mp3',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
@@ -85,7 +85,8 @@ ytdl_source = YoutubeDL(
     'logtostderr': False,
     'quiet': True,
     'no_warnings': True,
-    'verbose':False
+    'verbose':False,
+    'source_address': '0.0.0.0'
   }
 )
 
