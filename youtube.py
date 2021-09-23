@@ -5,7 +5,7 @@ from urllib import parse, request
 from asyncio import get_event_loop
 from traceback import format_exc as exc
 from re import compile, findall, search as src
-
+import reminder
 
 def search(text, limit = 25):
   try:
@@ -42,6 +42,8 @@ async def get_info(url):
   try:
     url = r'https://youtu.be/' + url.split('=')[1][:11] if 'list=' in url else url
     entry = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
+    if not entry:
+      await reminder.send()
     song = Song(
       entry['title'],
       entry['uploader'],
@@ -57,6 +59,8 @@ async def get_info(url):
 async def get_info_playlist(url):
   try:
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
+    if not entry:
+      await reminder.send()
     songs = []
     for entry in data['entries']:
       songs.append(
@@ -94,6 +98,8 @@ ytdl_source = YoutubeDL(
 async def get_source(url, song = None):
   try: 
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info(url, download=False))
+    if not data:
+      await reminder.send()
     if song:
       song.title = data['title']
       song.uploader = data['uploader']
