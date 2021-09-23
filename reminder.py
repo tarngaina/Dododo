@@ -6,7 +6,8 @@ owner = None
 CHANNEL_ID = 890542648769806347
 channel = None
 
-def data_prepare(bot):
+async def data_prepare(bot):
+  await bot.wait_until_ready()
   global owner, channel
   owner = bot.get_user(OWNER_ID)
   channel = bot.get_channel(CHANNEL_ID)
