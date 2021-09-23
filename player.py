@@ -106,7 +106,7 @@ class Player:
           color = random_color()
         )
         embed.set_author(name = '❗ Error')
-        get_event_loop().create_task(self.text_channel.send(embed = embed))
+        get_event_loop().run_until_complete(self.text_channel.send(embed = embed))
         return
       
     self.next()
