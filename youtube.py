@@ -59,7 +59,7 @@ async def get_info(url):
 async def get_info_playlist(url):
   try:
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
-    if not entry:
+    if not data:
       await reminder.send()
     songs = []
     for entry in data['entries']:
