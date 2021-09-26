@@ -59,7 +59,8 @@ async def on_ready():
   )
   await data_prepare(bot.get_all_channels())
   await reminder.data_prepare(bot)
-  
+  player._update.start()
+    
 
 help_page = 1
 @bot.command(name = 'help', aliases = ['h'])
@@ -743,7 +744,5 @@ async def _load(ctx, *, pref = None):
   p.songs += songs
   
     
-bot.loop.create_task(player._update(bot, 1))
 
-TOKEN = getenv('token')
-bot.run(TOKEN)
+bot.run(getenv('token'))
