@@ -1,4 +1,5 @@
 from discord import Embed
+from discord.ext import tasks
 from asyncio import sleep, get_event_loop
 from youtube import get_source
 from util import random_color
@@ -38,12 +39,10 @@ async def on_update(p):
     p.task_block = False
 
     
-async def _update(bot, interval):
-  await bot.wait_until_ready()
-  while True:
-    for p in players:
-      get_event_loop().create_task(on_update(p))
-    await sleep(interval)
+@tasks.loop(seconds = 1)
+async def _update():
+  for p in players:
+    get_event_loop().create_task(on_update(p))
 
     
 class Player:
