@@ -31,7 +31,6 @@ ytdl_source = YoutubeDL(
     'source_address': '0.0.0.0'
   }
 )
-get_players = None
 
 
 async def restart():
@@ -56,11 +55,7 @@ async def update():
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info('https://youtu.be/wZGLkYVwcCs', download=False))
     if not data:
       restart()
-  if count >= 40:
-    if get_players:
-      if len(get_players()) == 0:
-        restart()
-  count += 1
+      
 
 async def prepare(bot):
   await bot.wait_until_ready()
