@@ -10,11 +10,17 @@ from song import from_dic
 from youtube import search as youtube_search, get_info, get_info_playlist
 from util import to_int, random_color
 from resource import prepare as resource_prepare, load as resource_load, save as resource_save
-from maintenance import prepare as maintenance_prepare
+from maintenance import prepare as maintenance_prepare, restart
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
 InteractionClient(bot)
+
+
+
+@bot.command(name = 'restart')
+async def _restart(ctx):
+  await restart()
 
 
 @bot.event
