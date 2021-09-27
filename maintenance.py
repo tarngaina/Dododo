@@ -42,7 +42,7 @@ async def restart():
       g = Github(GTOKEN)
       repo = g.get_repo('tarngaina/dododo-bot')
       contents = repo.get_contents('version')
-      repo.update_file(contents.path, "restart", str(datetime.now()), contents.sha, branch = 'master')
+      repo.update_file(contents.path, "restart", str(datetime.now()), contents.sha, branch = 'main')
     except Exception as e:
       print(exc())
       await log(exc())
