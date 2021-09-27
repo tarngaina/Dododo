@@ -12,6 +12,7 @@ GTOKEN = getenv('gtoken')
 LOG_CHANNEL_ID = 891652708975673354
 log_channel = None
 restarting = False
+count = 0
 ytdl_source = YoutubeDL(
   {
     'format': 'bestaudio/best',
@@ -46,6 +47,10 @@ async def restart():
   
 @tasks.loop(minutes = 12)
 async def update():
+  global count
+  if count == 0:
+    count += 1
+    return
   data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info('https://youtu.be/wZGLkYVwcCs', download=False))
   if not data:
     restart()
