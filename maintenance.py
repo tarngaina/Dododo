@@ -8,6 +8,8 @@ from discord import File
 from github import Github
 
 from youtube_dl import YoutubeDL
+from player import get_players
+
 
 GTOKEN = getenv('gtoken')
 LOG_CHANNEL_ID = 891652708975673354
@@ -49,13 +51,14 @@ async def restart():
 @tasks.loop(minutes = 12)
 async def update():
   global count
-  if count == 0:
-    count += 1
-    return
-  data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info('https://youtu.be/wZGLkYVwcCs', download=False))
-  if not data:
-    restart()
-
+  if count > 0:
+    data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info('https://youtu.be/wZGLkYVwcCs', download=False))
+    if not data:
+      restart()
+  if count >= 40:
+    if len(get_players()) == 0:
+      restart()
+  count += 1
 
 async def prepare(bot):
   await bot.wait_until_ready()
