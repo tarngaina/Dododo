@@ -17,12 +17,6 @@ bot.remove_command('help')
 InteractionClient(bot)
 
 
-
-@bot.command(name = 'restart')
-async def _restart(ctx):
-  await restart()
-
-
 @bot.event
 async def on_command_error(ctx, error):
   if isinstance(error, commands.CommandNotFound):
