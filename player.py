@@ -1,11 +1,24 @@
+from asyncio import sleep, get_event_loop
+
 from discord import Embed
 from discord.ext import tasks
-from asyncio import sleep, get_event_loop
+
 from youtube import get_source
 from util import random_color
 
 players = []
 
+def add_player(voice_client):
+  players.append(Player(voice_client))
+  
+def remove_player(player):
+  players.remove(player)
+
+def get_player(id):
+  p = find_channel(id)
+  if not p:
+    p = find_guild(id)
+  return p
 
 def find_channel(id):
   for player in players:
@@ -13,12 +26,14 @@ def find_channel(id):
       return player
   return None
 
-
 def find_guild(id):
   for player in players:
     if player.voice_client.guild.id == id:
       return player
   return None
+
+def get_players():
+  return players
 
 
 async def on_update(p):
@@ -38,13 +53,15 @@ async def on_update(p):
     await p.play()
     p.task_block = False
 
-    
 @tasks.loop(seconds = 1)
-async def _update():
+async def update():
   for p in players:
     get_event_loop().create_task(on_update(p))
 
-    
+async def prepare():
+  update.start()
+
+
 class Player:
   def __init__(self, voice_client):
     self.voice_client = voice_client
@@ -62,7 +79,7 @@ class Player:
     self.current_page = 0
     self.max_page = 0
 
-    
+
   async def play(self):
     song = self.songs[self.current]
     res, audio_source, song = await get_source(song.url, song = song)
@@ -77,7 +94,8 @@ class Player:
         )
         embed.set_author(name = '❗ Error')
         await self.text_channel.send(embed = embed)
-        return
+      self.next()
+      return
     if self.text_channel:
       embed = Embed(
         title = f'{song.to_str()}',
@@ -106,7 +124,7 @@ class Player:
         )
         embed.set_author(name = '❗ Error')
         get_event_loop().run_until_complete(self.text_channel.send(embed = embed))
-        return
+      return
       
     self.next()
     self.is_playing = False

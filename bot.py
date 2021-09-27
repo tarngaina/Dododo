@@ -1,14 +1,16 @@
 from os import getenv
+from random import shuffle
+
 from discord.ext import commands
 from discord import Embed, Intents, Activity, ActivityType
 from dislash import InteractionClient, SelectMenu, SelectOption, ActionRow, Button, ButtonStyle
 
-import youtube, player
-from util import to_int, random_color
+from player import prepare as player_prepare, get_player, get_players, add_player, remove_player
 from song import from_dic
-from random import shuffle
-from pref import data_prepare, save_pref, load_pref
-import reminder
+from youtube import search as youtube_search, get_info, get_info_playlist
+from util import to_int, random_color
+from resource import prepare as resource_prepare, load as resource_load, save as resource_save
+from maintenance import prepare as maintenance_prepare
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
@@ -39,12 +41,12 @@ async def on_voice_state_update(member, before, after):
     if not before.channel and after.channel:
       for voice_client in bot.voice_clients:
         if voice_client.channel.id == after.channel.id:
-          player.players.append(player.Player(voice_client))
+          add_player(voice_client)
     if before.channel and not after.channel:
-      p = player.find_channel(before.channel.id)
+      p = get_player(before.channel.id)
       if p:
-        player.players.remove(p)
-  for p in player.players:
+        remove_player(p)
+  for p in get_players():
     p.member = len(p.voice_client.channel.members)
        
         
@@ -57,10 +59,18 @@ async def on_ready():
       name = "Watame Lullaby"
     )
   )
-  await data_prepare(bot.get_all_channels())
-  await reminder.data_prepare(bot)
-  player._update.start()
-    
+  for guild in bot.guilds:
+    for voice_channel in guild.voice_channels:
+      for member in voice_channel.members:
+        if member.id == bot.user.id:
+          await voice_channel.connect()
+  for voice_client in bot.voice_clients:
+    add_player(voice_client)
+  for p in get_players():
+    p.member = len(p.voice_client.channel.members)
+  await resource_prepare(bot)
+  await maintenance_prepare(bot)
+  await player_prepare()
 
 help_page = 1
 @bot.command(name = 'help', aliases = ['h'])
@@ -157,17 +167,8 @@ async def _leave(ctx):
 
       
 @bot.command(name = 'search', aliases = ['s', 'find', 'f'])
-async def _search(ctx, *, query):
-  if (query == None) or (query == ''):
-    embed = Embed(
-      title = 'No param found, you need to enter a query to be searched.',
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Error')
-    await ctx.send(embed = embed)
-    return
-  
-  res, urls = youtube.search(query, limit = 8)
+async def _search(ctx, *, query):  
+  res, urls = youtube_search(query, limit = 8)
   if not res:
     msg = urls
     embed = Embed(
@@ -180,9 +181,10 @@ async def _search(ctx, *, query):
   options = []
   async with ctx.typing():
     for url in urls:
-      res, song = await youtube.get_info(url)
+      res, song = await get_info(url)
       if res:
         options.append(SelectOption(label = song.fixed_title(1000), value = url, description = f'[{song.fixed_duration()}] - {song.fixed_uploader(1000)}'))
+  
   components = [
     SelectMenu(
       custom_id = "search",
@@ -196,8 +198,10 @@ async def _search(ctx, *, query):
     color = random_color()
   )
   message = await ctx.send(embed = embed, components = components, delete_after = 60)
+ 
   def check(inter):
     return inter.author == ctx.author
+
   try:
     inter = await message.wait_for_dropdown(check, timeout = 60)
     url = inter.select_menu.selected_options[0].value
@@ -221,7 +225,7 @@ async def _play(ctx, *, text):
       await ctx.send(embed = embed)
       return
     
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     embed = Embed(
       title = 'Something is wrong, please make bot rejoin voice channel to reset settings.',
@@ -244,9 +248,9 @@ async def _play(ctx, *, text):
   async with ctx.typing():
     if ('youtu.be' in text) or ('youtube.com' in text):
       if 'playlist?' in text:
-        res, songs = await youtube.get_info_playlist(text)
+        res, songs = await get_info_playlist(text)
       else:
-        res, songs = await youtube.get_info(text)
+        res, songs = await get_info(text)
         songs = [songs]
     else:
       if text.startswith('http') or text.startswith('www'):
@@ -256,9 +260,9 @@ async def _play(ctx, *, text):
         embed.set_author(name = '❗ Error')
         await ctx.send(embed = embed)
       else:
-        res2, urls = youtube.search(text)
+        res2, urls = youtube_search(text)
         if res2:
-          res, songs = await youtube.get_info(urls[0])
+          res, songs = await get_info(urls[0])
           songs = [songs]
         else:
           msg = urls
@@ -300,7 +304,7 @@ async def _play(ctx, *, text):
   
 @bot.command(name = 'skip', aliases = ['next'])
 async def _skip(ctx):
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   
@@ -311,7 +315,7 @@ async def _skip(ctx):
     
 @bot.command(name = 'jump', aliases = ['c', 'current', 'move'])
 async def _jump(ctx, param = None):
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   if len(p.songs) <= 0:
@@ -372,8 +376,6 @@ async def _jump(ctx, param = None):
       p.current = i
     await ctx.message.add_reaction('✅')
       
-
-
      
 @bot.command(name = 'queue', aliases = ['q', 'playlist', 'list', 'all'])
 async def _queue(ctx):
@@ -397,7 +399,7 @@ async def _queue(ctx):
     embed.add_field(name = name, value = value, inline = True)
     return embed
 
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   if len(p.songs) <= 0:
@@ -468,7 +470,7 @@ async def _queue(ctx):
 
 @bot.command(name = 'clear', aliases = ['clean', 'reset'])
 async def _clear(ctx):
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   
@@ -482,7 +484,7 @@ async def _clear(ctx):
 
 @bot.command(name = 'remove', aliases = ['delete', 'del'])
 async def _remove(ctx, param = None):
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   if len(p.songs) <= 0:
@@ -539,7 +541,7 @@ async def _remove(ctx, param = None):
   
 @bot.command(name = 'pause')
 async def _pause(ctx):
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   if not p.voice_client.is_paused():
@@ -549,7 +551,7 @@ async def _pause(ctx):
     
 @bot.command(name = 'resume')
 async def _resume(ctx):
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   if p.voice_client.is_paused():
@@ -559,7 +561,7 @@ async def _resume(ctx):
     
 @bot.command(name = 'loop', aliases = ['repeat', 'r'])
 async def _loop(ctx, param = None):
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   
@@ -596,7 +598,7 @@ async def _loop(ctx, param = None):
   
 @bot.command(name = 'shuffle')
 async def _shuffle(ctx):
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   if len(p.songs) <= 0:
@@ -616,9 +618,9 @@ async def _shuffle(ctx):
   await ctx.message.add_reaction('🔀')
     
 @bot.command(name = 'save')
-@commands.cooldown(1, 5, commands.BucketType.guild)
+@commands.cooldown(1, 3, commands.BucketType.guild)
 async def _save(ctx, *, pref = None):
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     return
   if len(p.songs) <= 0:
@@ -640,25 +642,42 @@ async def _save(ctx, *, pref = None):
     return
   
   
-  res, dic = await load_pref()
+  res, user_prefs = await resource_load('user_prefs.json')
   if not res:
     embed = Embed(
-      title = dic,
+      title = user_prefs,
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
     return
-  
-  key = str(ctx.guild.id)
-  pref = str(pref)
-  if key not in dic:
-    dic[key] = {}
-  dic[key][pref] = []
-  for song in p.songs:
-    dic[key][pref].append(song.to_dic())
+  res, guild_prefs = await resource_load('guild_prefs.json')
+  if not res:
+    embed = Embed(
+      title = guild_prefs,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
 
-  await save_pref(dic)
+  pref = str(pref)
+  key = str(ctx.author.id)
+  if key not in user_prefs:
+    user_prefs[key] = {}
+  user_prefs[key][pref] = []
+  for song in p.songs:
+    user_prefs[key][pref].append(song.to_dic())
+  await resource_save('user_prefs.json', user_prefs)
+
+  key = str(ctx.guild.id)
+  if key not in guild_prefs:
+    guild_prefs[key] = {}
+  guild_prefs[key][pref] = []
+  for song in p.songs:
+    guild_prefs[key][pref].append(song.to_dic())
+  await resource_save('guild_prefs.json', guild_prefs)
+
   embed = Embed(
     title = f'📄 Current queue has been saved to pref:\n{pref}',
     color = random_color()
@@ -679,7 +698,7 @@ async def _load(ctx, *, pref = None):
       embed.set_author(name = '❗ Error')
       await ctx.send(embed = embed)
       return
-  p = player.find_guild(ctx.author.guild.id)
+  p = get_player(ctx.author.guild.id)
   if not p:
     embed = Embed(
       title = 'Something is wrong, please make bot rejoin voice channel to reset settings.',
@@ -688,42 +707,55 @@ async def _load(ctx, *, pref = None):
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
     return
-  
-  res, dic = await load_pref()
-  key = str(ctx.guild.id)
+
   pref = str(pref)
-  if key not in dic:
+
+  res, user_prefs = await resource_load('user_prefs.json')
+  if not res:
     embed = Embed(
-      title = 'No pref saved on this guild.',
+      title = user_prefs,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+
+  res, guild_prefs = await resource_load('guild_prefs.json')
+  if not res:
+    embed = Embed(
+      title = guild_prefs,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+
+  user_key = str(ctx.author.id)
+  guild_key = str(ctx.guild.id)
+
+  prefs = {}
+  if guild_key in guild_prefs:
+    for pref_key in guild_prefs[guild_key].keys():
+      if pref_key not in prefs:
+        prefs[pref_key] = guild_prefs[guild_key][pref_key]
+  if user_key in user_prefs:
+    for pref_key in user_prefs[user_key].keys():
+      if pref_key not in prefs:
+        prefs[pref_key] = user_prefs[user_key][pref_key]
+  
+  if len(prefs) == 0:
+    embed = Embed(
+      title = 'No pref found with this guild or user.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
     return
   
-  if len(dic[key]) <= 0:
+  if (pref == 'None') or (pref == '') or (pref not in prefs):
     embed = Embed(
-      title = 'No pref saved on this guild.',
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Error')
-    await ctx.send(embed = embed)
-    return
-  
-  if (pref == 'None') or (pref == ''):
-    embed = Embed(
-      title = 'Need pref name to be loaded.',
-      description = f'All pref on this guild:\n{", ".join(dic[key].keys())}',
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Error')
-    await ctx.send(embed = embed)
-    return
-  
-  if pref not in dic[key]:
-    embed = Embed(
-      title = f'No pref found in this guild with: {pref}.',
-      description = f'All pref on this guild:\n{", ".join(dic[key].keys())}',
+      title = f'No pref found with: {pref}',
+      description = f'All pref available:\n{", ".join(prefs.keys())}',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -732,7 +764,7 @@ async def _load(ctx, *, pref = None):
 
   songs = []
   async with ctx.typing():
-    for song_dic in dic[key][pref]:
+    for song_dic in prefs[pref]:
       songs.append(from_dic(song_dic))
    
   embed = Embed(
@@ -744,5 +776,4 @@ async def _load(ctx, *, pref = None):
   p.songs += songs
   
     
-
 bot.run(getenv('token'))

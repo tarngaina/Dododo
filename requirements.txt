@@ -1,5 +1,6 @@
 pip
 youtube_dl
-discord.py[voice]
 PyNaCl
+PyGithub
+discord.py[voice]
 dislash.py
