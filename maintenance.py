@@ -8,7 +8,6 @@ from discord import File
 from github import Github
 
 from youtube_dl import YoutubeDL
-from player import get_players
 
 
 GTOKEN = getenv('gtoken')
@@ -32,6 +31,8 @@ ytdl_source = YoutubeDL(
     'source_address': '0.0.0.0'
   }
 )
+get_players = None
+
 
 async def restart():
   global restarting
@@ -56,8 +57,9 @@ async def update():
     if not data:
       restart()
   if count >= 40:
-    if len(get_players()) == 0:
-      restart()
+    if get_players:
+      if len(get_players()) == 0:
+        restart()
   count += 1
 
 async def prepare(bot):
