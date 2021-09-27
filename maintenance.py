@@ -50,11 +50,7 @@ async def restart():
   
 @tasks.loop(minutes = 12)
 async def update():
-  global count
-  if count > 0:
-    data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info('https://youtu.be/wZGLkYVwcCs', download=False))
-    if not data:
-      restart()
+  return
       
 
 async def prepare(bot):
