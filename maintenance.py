@@ -4,6 +4,7 @@ from asyncio import get_event_loop
 from traceback import format_exc as exc
 
 from discord.ext import tasks
+from discord import File
 from github import Github
 
 from youtube_dl import YoutubeDL
@@ -72,5 +73,10 @@ def _log(text):
 async def log(text):
   if not log_channel:
     return
-  
-  await log_channel.send(f'```\n{text}\n```')
+  if len(text) > 1000:
+    f = open('temp.txt', 'w+', encoding = 'utf-8')
+    f.write(text)
+    f.close()
+    await log_channel.send('too long', file = File('temp.txt'))
+  else:
+    await log_channel.send(f'```\n{text}\n```')
