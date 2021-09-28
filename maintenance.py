@@ -45,7 +45,7 @@ async def update():
   count += 1
   if count > 28000:
     if len(bot_instance.voice_clients) == 0:
-      restart()
+      await restart()
       
 
 async def prepare(bot):
@@ -57,16 +57,18 @@ async def prepare(bot):
   global restarting
   restarting = False
   update.start()
+  await log('Deployed.')
 
 
 async def log(text):
   if not log_channel:
+    print('Warning: No log channel found.')
     return
     
   if len(text) > 1600:
     f = open('log.txt', 'w+', encoding = 'utf-8')
     f.write(text)
     f.close()
-    await log_channel.send(str(now()), file = File('log.txt'))
+    await log_channel.send(f'{now()}', file = File('log.txt'))
   else:
-    await log_channel.send(f'```\n{now()}\n{text}\n```')
+    await log_channel.send(f'{now()}\n```\n{text}\n```')
