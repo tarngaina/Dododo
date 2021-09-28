@@ -7,7 +7,7 @@ from discord import PCMVolumeTransformer, FFmpegOpusAudio
 from youtube_dl import YoutubeDL
 
 from song import Song
-from maintenance import restart, log, _log
+from maintenance import restart
 
 
 def search(text, limit = 25):
@@ -25,7 +25,6 @@ def search(text, limit = 25):
     return True, urls
   except Exception as e:
     print(exc())
-    _log(exc())
     return False, str(e)
     
 
@@ -48,7 +47,7 @@ async def get_info(url):
     url = r'https://youtu.be/' + url.split('=')[1][:11] if 'list=' in url else url
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
     if not data:
-      restart()
+      await restart()
       return False, 'Bot is restarting to update its components, please try again in 5 minutes.'
 
     entry = data
@@ -62,14 +61,13 @@ async def get_info(url):
     return True, song
   except Exception as e:
     print(exc())
-    await log(exc())
     return False, str(e)
 
 async def get_info_playlist(url):
   try:
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
     if not data:
-      restart()
+      await restart()
       return False, 'Bot is restarting to update its components, please try again in 5 minutes.'
   
     songs = []
@@ -85,7 +83,6 @@ async def get_info_playlist(url):
     return True, songs
   except Exception as e:
     print(exc())
-    await log(exc())
     return False, str(e)
     
 
@@ -111,7 +108,7 @@ async def get_source(url, song = None):
   try: 
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info(url, download=False))
     if not data:
-      restart()
+      await restart()
       return False, 'Bot is restarting to update its components, please try again in 5 minutes.', song
     
     if song:
@@ -121,6 +118,5 @@ async def get_source(url, song = None):
     return True, FFmpegOpusAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), song
   except Exception as e:
     print(exc())
-    await log(exc())
     return False, str(e), song
   
