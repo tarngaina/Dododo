@@ -7,14 +7,23 @@ from discord import PCMVolumeTransformer, FFmpegOpusAudio
 from youtube_dl import YoutubeDL
 
 from song import Song
-from maintenance import restart
-
+from maintenance import restart, log
+from util import strip_ansi
 
 def search(text, limit = 25):
+  ids = None
   try:
     ids = findall(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
-    if not ids or (len(ids) == 0):
+  
+  except Exception as e:
+    msg = f'{e}\n{exc()}'
+    get_event_loop().create_task(log(msg))
+    return False, str(e)
+  
+  else:
+    if (not ids) or (len(ids) == 0):
       return False, f'No song found with: {text}.'
+
     urls = []
     for id in ids:
       url = f'https://youtu.be/{id}'
@@ -23,15 +32,12 @@ def search(text, limit = 25):
     if len(urls) > limit:
       urls = urls[:limit]
     return True, urls
-  except Exception as e:
-    print(exc())
-    return False, str(e)
     
 
 ytdl_extract = YoutubeDL(
   {
     'extract_flat': True, 
-    'ignoreerrors': True,
+    'ignoreerrors': False,
     'quiet': True,
     'simulate': True,
     'skip_download': True,
@@ -43,13 +49,17 @@ ytdl_extract = YoutubeDL(
 )
 
 async def get_info(url):
+  data = None
   try:
     url = r'https://youtu.be/' + url.split('=')[1][:11] if 'list=' in url else url
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
-    if not data:
-      await restart()
-      return False, 'Bot is restarting to update its components, please try again in 5 minutes.'
-
+  
+  except Exception as e:
+    msg = f'{strip_ansi(e)}\n{exc()}'
+    await log(msg)
+    return False, strip_ansi(str(e))
+  
+  else: 
     entry = data
     song = Song(
       entry['title'],
@@ -59,17 +69,18 @@ async def get_info(url):
       thumbnail = entry['thumbnail']
     )
     return True, song
-  except Exception as e:
-    print(exc())
-    return False, str(e)
 
 async def get_info_playlist(url):
+  data = None
   try:
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
-    if not data:
-      await restart()
-      return False, 'Bot is restarting to update its components, please try again in 5 minutes.'
   
+  except Exception as e:
+    msg = f'{strip_ansi(e)}\n{exc()}'
+    await log(msg)
+    return False, strip_ansi(str(e))
+  
+  else:
     songs = []
     for entry in data['entries']:
       songs.append(
@@ -81,9 +92,6 @@ async def get_info_playlist(url):
         )
       )
     return True, songs
-  except Exception as e:
-    print(exc())
-    return False, str(e)
     
 
 ytdl_source = YoutubeDL(
@@ -105,18 +113,19 @@ ytdl_source = YoutubeDL(
 
 
 async def get_source(url, song = None):
+  data = None
   try: 
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info(url, download=False))
-    if not data:
-      await restart()
-      return False, 'Bot is restarting to update its components, please try again in 5 minutes.', song
-    
+  
+  except Exception as e:
+    msg = f'{strip_ansi(e)}\n{exc()}'
+    await log(msg)
+    return False, strip_ansi(str(e))
+  
+  else:
     if song:
       song.title = data['title']
       song.uploader = data['uploader']
       song.thumbnail = data['thumbnail']
     return True, FFmpegOpusAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), song
-  except Exception as e:
-    print(exc())
-    return False, str(e), song
   

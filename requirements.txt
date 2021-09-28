@@ -1,4 +1,5 @@
 pip
+pytz
 youtube_dl
 PyNaCl
 PyGithub

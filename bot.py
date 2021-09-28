@@ -10,11 +10,13 @@ from song import from_dic
 from youtube import search as youtube_search, get_info, get_info_playlist
 from util import to_int, random_color
 from resource import prepare as resource_prepare, load as resource_load, save as resource_save
-from maintenance import prepare as maintenance_prepare, restart
+from maintenance import prepare as maintenance_prepare, restart, is_restarting
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
-InteractionClient(bot)
+InteractionClient(bot
+)
+OWNER_ID = int(getenv('owner_id'))
 
 
 @bot.event
@@ -71,6 +73,21 @@ async def on_ready():
   await resource_prepare(bot)
   await maintenance_prepare(bot)
   await player_prepare()
+
+
+@bot.command(name = 'restart')
+async def _restart(ctx):
+  if ctx.author.id == OWNER_ID:
+    await restart()
+    await ctx.message.add_reaction('✅')
+  else:
+    embed = Embed(
+      title = 'Sorry you do not own this bot.\nOnly owner can run this command.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+
 
 help_page = 1
 @bot.command(name = 'help', aliases = ['h'])
@@ -143,6 +160,7 @@ async def _help(ctx):
   async def on_timeout():
     await message.edit(components=[])
 
+
 @bot.command(name = 'join', aliases = ['j'])
 async def _join(ctx):
   if not ctx.author.voice:
@@ -213,6 +231,16 @@ async def _search(ctx, *, query):
   
 @bot.command(name = 'play', aliases = ['p'])
 async def _play(ctx, *, text):
+  if is_restarting():
+    embed = Embed(
+      title = 'This bot is restarting to update its component, please try again in 5 minutes.',
+      description = 'Why is this happening?: YouTube updates itself everyday, so does this bot.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+
   if not ctx.voice_client:
     if ctx.author.voice:
       await ctx.author.voice.channel.connect()
@@ -244,45 +272,60 @@ async def _play(ctx, *, text):
     await ctx.send(embed = embed)
     return
   
-  res, songs = None, None
+  songs = None
   async with ctx.typing():
     if ('youtu.be' in text) or ('youtube.com' in text):
       if 'playlist?' in text:
         res, songs = await get_info_playlist(text)
-      else:
-        res, songs = await get_info(text)
-        songs = [songs]
-    else:
-      if text.startswith('http') or text.startswith('www'):
-        embed = Embed(
-          title = 'Sorry this bot only support YouTube.'
-        )
-        embed.set_author(name = '❗ Error')
-        await ctx.send(embed = embed)
-      else:
-        res2, urls = youtube_search(text)
-        if res2:
-          res, songs = await get_info(urls[0])
-          songs = [songs]
-        else:
-          msg = urls
+        if not res:
           embed = Embed(
-            title = msg,
+            title = songs,
             color = random_color()
           )
           embed.set_author(name = '❗ Error')
           await ctx.send(embed = embed)
           return
-  
-  if not res:
-    msg = songs
-    embed = Embed(
-      title = msg,
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Error')
-    await ctx.send(embed = embed)
-    return
+      else:
+        res, songs = await get_info(text)
+        if not res:
+          embed = Embed(
+            title = songs,
+            color = random_color()
+          )
+          embed.set_author(name = '❗ Error')
+          await ctx.send(embed = embed)
+          return
+        songs = [songs]
+    else:
+      if text.startswith('http') or text.startswith('www'):
+        embed = Embed(
+          title = 'Sorry this bot only support YouTube.',
+          color = random_color()
+        )
+        embed.set_author(name = '❗ Error')
+        await ctx.send(embed = embed)
+        return
+      else:
+        res, urls = youtube_search(text)
+        if not res:
+          embed = Embed(
+            title = urls,
+            color = random_color()
+          )
+          embed.set_author(name = '❗ Error')
+          await ctx.send(embed = embed)
+          return
+        res, songs = await get_info(urls[0])
+        if not res:
+          embed = Embed(
+            title = songs,
+            color = random_color()
+          )
+          embed.set_author(name = '❗ Error')
+          await ctx.send(embed = embed)
+          return
+        songs = [songs]
+          
   
   if len(songs) == 1:
     embed = Embed(
@@ -318,6 +361,7 @@ async def _jump(ctx, param = None):
   p = get_player(ctx.author.guild.id)
   if not p:
     return
+    
   if len(p.songs) <= 0:
     embed = Embed(
       title = 'No songs in queue.',

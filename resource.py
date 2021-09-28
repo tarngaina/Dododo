@@ -51,8 +51,8 @@ async def load(filename):
     await find_resource_messages()
     return False, 'Something is wrong right now, try again.'
   except Exception as e:
-    print(exc())
-    await log(exc())
+    msg = f'{e}\n{exc()}'
+    await log(msg)
     return False, str(e)
 
 async def save(filename, dic):
@@ -75,8 +75,8 @@ async def save(filename, dic):
     await find_resource_messages()
     return False, 'Something is wrong right now, try again.'
   except Exception as e:
-    print(exc())
-    await log(exc())
+    msg = f'{e}\n{exc()}'
+    await log(msg)
     return False, str(e)
 
 

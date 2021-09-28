@@ -1,5 +1,4 @@
 from os import getenv
-from datetime import datetime
 from asyncio import get_event_loop
 from traceback import format_exc as exc
 
@@ -7,7 +6,7 @@ from discord.ext import tasks
 from discord import File
 from github import Github
 
-from youtube_dl import YoutubeDL
+from util import now
 
 
 GTOKEN = getenv('gtoken')
@@ -15,45 +14,43 @@ LOG_CHANNEL_ID = 891652708975673354
 log_channel = None
 restarting = False
 count = 0
-ytdl_source = YoutubeDL(
-  {
-    'format': 'bestaudio/best',
-    'extractaudio': True,
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-    'restrictfilenames': True,
-    'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
-    'verbose':False,
-    'source_address': '0.0.0.0'
-  }
-)
+bot_instance = None
+
+
+def is_restarting():
+  global restarting
+  return restarting
 
 
 async def restart():
   global restarting
   if not restarting:
     restarting = True
-    await log('[maintenance.update]\nYoutube-DL error, restarting bot.')
+    await log('Restarting bot.')
+   
     try:
       g = Github(GTOKEN)
       repo = g.get_repo('tarngaina/dododo-bot')
       contents = repo.get_contents('version')
-      repo.update_file(contents.path, "restart", str(datetime.now()), contents.sha, branch = 'main')
+      repo.update_file(contents.path, "restart", str(now()), contents.sha, branch = 'main')
+  
     except Exception as e:
-      print(exc())
-      await log(exc())
+      msg = f'{e}\n{exc()}'
+      await log(msg)
 
   
-@tasks.loop(minutes = 12)
+@tasks.loop(seconds = 1)
 async def update():
-  return
+  global count, bot_instance
+  count += 1
+  if count > 28000:
+    if len(bot_instance.voice_clients) == 0:
+      restart()
       
 
 async def prepare(bot):
+  global bot_instance
+  bot_instance = bot
   await bot.wait_until_ready()
   global log_channel
   log_channel = bot.get_channel(LOG_CHANNEL_ID)
@@ -62,17 +59,14 @@ async def prepare(bot):
   update.start()
 
 
-def _log(text):
-  get_event_loop().create_task(log(text))
-    
-
 async def log(text):
   if not log_channel:
     return
-  if len(text) > 1000:
-    f = open('temp.txt', 'w+', encoding = 'utf-8')
+    
+  if len(text) > 1600:
+    f = open('log.txt', 'w+', encoding = 'utf-8')
     f.write(text)
     f.close()
-    await log_channel.send('too long', file = File('temp.txt'))
+    await log_channel.send(str(now()), file = File('log.txt'))
   else:
-    await log_channel.send(f'```\n{text}\n```')
+    await log_channel.send(f'```\n{now()}\n{text}\n```')
