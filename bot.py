@@ -233,7 +233,7 @@ async def _search(ctx, *, query):
 async def _play(ctx, *, text):
   if is_restarting():
     embed = Embed(
-      title = 'This bot is restarting to update its component, please try again in 5 minutes.',
+      title = 'This bot is restarting to update its component, please try again in 2 minutes.',
       description = 'Why is this happening?: YouTube updates itself everyday, so does this bot.',
       color = random_color()
     )
@@ -729,8 +729,18 @@ async def _save(ctx, *, pref = None):
   await ctx.send(embed = embed)
   
 @bot.command(name = 'load')
-@commands.cooldown(1, 5, commands.BucketType.guild)
+@commands.cooldown(1, 3, commands.BucketType.guild)
 async def _load(ctx, *, pref = None):
+  if is_restarting():
+    embed = Embed(
+      title = 'This bot is restarting to update its component, please try again in 2 minutes.',
+      description = 'Why is this happening?: YouTube updates itself everyday, so does this bot.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+  
   if not ctx.voice_client:
     if ctx.author.voice:
       await ctx.author.voice.channel.connect()
@@ -778,18 +788,19 @@ async def _load(ctx, *, pref = None):
   guild_key = str(ctx.guild.id)
 
   prefs = {}
-  if guild_key in guild_prefs:
-    for pref_key in guild_prefs[guild_key].keys():
-      if pref_key not in prefs:
-        prefs[pref_key] = guild_prefs[guild_key][pref_key]
   if user_key in user_prefs:
     for pref_key in user_prefs[user_key].keys():
       if pref_key not in prefs:
         prefs[pref_key] = user_prefs[user_key][pref_key]
+  if guild_key in guild_prefs:
+    for pref_key in guild_prefs[guild_key].keys():
+      if pref_key not in prefs:
+        prefs[pref_key] = guild_prefs[guild_key][pref_key]
+
   
   if len(prefs) == 0:
     embed = Embed(
-      title = 'No pref found with this guild or user.',
+      title = 'Both you and this guild don\'t have any prefs.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
