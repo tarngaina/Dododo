@@ -45,7 +45,7 @@ async def on_update(p):
     p.idle2 += 1
   else:
     p.idle2 = 0
-  if (p.idle > 600) or (p.idle2 > 60):
+  if (p.idle > 600) or (p.idle2 > 300):
     await p.voice_client.disconnect()
     return
   if (not p.task_block) and (len(p.songs) > 0) and (not p.is_playing) and (p.current < len(p.songs)):
