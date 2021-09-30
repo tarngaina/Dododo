@@ -103,19 +103,21 @@ async def _help(ctx):
       embed.add_field(name = '#️⃣play/p <url/query>', value = 'Play an url or search for a song similar to query and play it. (YouTube only)', inline = False)
       embed.add_field(name = '#️⃣search/s/find/f <query>', value = 'Search a song with query. (YouTube only)', inline = False)
     elif page == 2:  
+      embed.add_field(name = '#️⃣queue/q/playlist/list/all', value = 'Show queue.', inline = False)
+      embed.add_field(name = '#️⃣current/c', value = 'Show current song info.', inline = False) 
       embed.add_field(name = '#️⃣skip/next', value = 'Skip current song.', inline = False)
       embed.add_field(name = '#️⃣jump/move [index]', value = 'Jump to specific song in queue by index.', inline = False)
-      embed.add_field(name = '#️⃣current/c', value = 'Show current song info.', inline = False) 
-      embed.add_field(name = '#️⃣queue/q/playlist/list/all', value = 'Show queue.', inline = False)
       embed.add_field(name = '#️⃣remove/delete/del <index>', value = 'Remove a specific song in queue by index.', inline = False)
       embed.add_field(name = '#️⃣clear/clean/reset', value = 'Clear all songs in queue.', inline = False)
-    else:
+    elif page == 3:  
       embed.add_field(name = '#️⃣pause', value = 'Pause current song if playing.', inline = False)
       embed.add_field(name = '#️⃣resume', value = 'Resume current song if paused.', inline = False)
       embed.add_field(name = '#️⃣shuffle', value = 'Shuffle and play again the queue.', inline = False)
       embed.add_field(name = '#️⃣loop/repeat/r [mode]', value = 'Change loop/repeat mode of player: off/single/all', inline = False)
+    else:
       embed.add_field(name = '#️⃣save <pref>', value = 'Save queue to a pref.', inline = False)
-      embed.add_field(name = '#️⃣load <pref>', value = 'Load a pref and add all songs to queue.', inline = False)
+      embed.add_field(name = '#️⃣load <pref>', value = 'Load and add all songs from a pref to queue.', inline = False)
+      embed.add_filed(name = '#️⃣forget <pref>', value = 'Forget a pref that saved.', inline = False)
     return embed
   
   global help_page
@@ -136,7 +138,7 @@ async def _help(ctx):
     )
   ]
   message = await ctx.send(embed = embed, components = components)
-  on_click = message.create_click_listener(timeout = 60)
+  on_click = message.create_click_listener(timeout = 120)
 
   @on_click.matching_id("left_button")
   async def on_left_button(inter):
@@ -152,8 +154,8 @@ async def _help(ctx):
     await inter.reply('Please wait...', delete_after = 0)
     global help_page
     help_page += 1
-    if help_page > 3:
-      help_page = 3
+    if help_page > 4:
+      help_page = 4
     await inter.message.edit(embed = create_embed(help_page))
     
   @on_click.timeout
@@ -473,7 +475,7 @@ async def _queue(ctx):
   ]
 
   message = await ctx.send(embed = embed,  components = components)
-  on_click = message.create_click_listener(timeout = 60)
+  on_click = message.create_click_listener(timeout = 120)
 
   @on_click.matching_id("left_button")
   async def on_left_button(inter):
@@ -830,5 +832,49 @@ async def _load(ctx, *, pref = None):
   p.text_channel = ctx.channel
   p.songs += songs
   
+@bot.command(name = 'forget')
+@commands.cooldown(1, 3, commands.BucketType.guild)
+async def _forget(ctx, *, pref = None):
+  pref = str(pref)
+
+  res, user_prefs = await resource_load('user_prefs.json')
+  if not res:
+    embed = Embed(
+      title = user_prefs,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+
+  user_key = str(ctx.author.id)
+  
+  if user_key not in user_prefs:
+    embed = Embed(
+      title = 'You don\'t have any pref saved.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+  
+  if (pref == 'None') or (pref == '') or (pref not in user_prefs[user_key]):
+    embed = Embed(
+      title = f'No pref found with: {pref}',
+      description = f'All pref available:\n{", ".join(user_prefs.keys())}',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+  
+  user_prefs[user_key].pop(pref, None)
+  await resource_save('user_prefs.json', user_prefs)
+  embed = Embed(
+    title = f'Forgot {pref}.',
+    color = random_color()
+  )
+  await ctx.send(embed = embed)
+    
     
 bot.run(getenv('token'))
