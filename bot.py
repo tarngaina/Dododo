@@ -117,7 +117,7 @@ async def _help(ctx):
     else:
       embed.add_field(name = '#️⃣save <pref>', value = 'Save queue to a pref.', inline = False)
       embed.add_field(name = '#️⃣load <pref>', value = 'Load and add all songs from a pref to queue.', inline = False)
-      embed.add_filed(name = '#️⃣forget <pref>', value = 'Forget a pref that saved.', inline = False)
+      embed.add_field(name = '#️⃣forget <pref>', value = 'Forget a pref that saved.', inline = False)
     return embed
   
   global help_page
