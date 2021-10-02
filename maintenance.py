@@ -6,7 +6,7 @@ from discord.ext import tasks
 from discord import File
 from github import Github
 
-from util import now
+from util import now_str
 
 
 GTOKEN = getenv('gtoken')
@@ -32,7 +32,7 @@ async def restart():
       g = Github(GTOKEN)
       repo = g.get_repo('tarngaina/dododo-bot')
       contents = repo.get_contents('version')
-      repo.update_file(contents.path, "restart", str(now()), contents.sha, branch = 'main')
+      repo.update_file(contents.path, "restart", str(now_str()), contents.sha, branch = 'main')
   
     except Exception as e:
       msg = f'{e}\n{exc()}'
@@ -49,9 +49,9 @@ async def update():
       
 
 async def prepare(bot):
+  await bot.wait_until_ready()
   global bot_instance
   bot_instance = bot
-  await bot.wait_until_ready()
   global log_channel
   log_channel = bot.get_channel(LOG_CHANNEL_ID)
   global restarting
@@ -69,6 +69,6 @@ async def log(text):
     f = open('log.txt', 'w+', encoding = 'utf-8')
     f.write(text)
     f.close()
-    await log_channel.send(f'{now()}', file = File('log.txt'))
+    await log_channel.send(f'{now_str()}', file = File('log.txt'))
   else:
-    await log_channel.send(f'{now()}\n```\n{text}\n```')
+    await log_channel.send(f'{now_str()}\n```\n{text}\n```')
