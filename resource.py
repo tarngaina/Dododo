@@ -7,7 +7,7 @@ from maintenance import log
 
 RESOURCE_CHANNEL_ID = 889792058565488660
 resource_channel = None
-RESOURCE_FILES = ['user_prefs.json', 'guild_prefs.json']
+RESOURCE_FILES = ['prefs.json']
 resource_messages = {}
 
 
