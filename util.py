@@ -13,6 +13,9 @@ def to_int(obj):
 
 def now():
   return datetime.now(timezone("Asia/Ho_Chi_Minh"))
+
+def now_str():
+  return now().strftime('%H:%M - %A, %B %d, %Y ')
   
 def random_color():
   return Color.from_rgb(randint(0, 255), randint(0, 255), randint(0, 255))
