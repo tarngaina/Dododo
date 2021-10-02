@@ -4,6 +4,8 @@ from traceback import format_exc as exc
 from discord import File, Forbidden
 
 from maintenance import log
+from until import now_str
+
 
 RESOURCE_CHANNEL_ID = 889792058565488660
 resource_channel = None
@@ -30,7 +32,7 @@ async def find_resource_messages():
     if filename not in resource_messages:
       with open(filename, 'w+', encoding = 'utf-8') as f:
         f.write('{}')
-      resource_messages[filename] = await resource_channel.send('read', file = File(filename))
+      resource_messages[filename] = await resource_channel.send(now_str(), file = File(filename))
         
       
 async def load(filename):
@@ -68,7 +70,7 @@ async def save(filename, dic):
     with open(filename, 'w+', encoding = 'utf-8') as f:
       dump(dic, f, ensure_ascii = False, indent = 2)
     await resource_messages[filename].delete()
-    resource_messages[filename] = await resource_channel.send('read', file = File(filename))
+    resource_messages[filename] = await resource_channel.send(now_str(), file = File(filename))
     return True, ''
 
   except Forbidden:
