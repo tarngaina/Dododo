@@ -14,8 +14,7 @@ from maintenance import prepare as maintenance_prepare, restart, is_restarting
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
 bot.remove_command('help')
-InteractionClient(bot
-)
+InteractionClient(bot)
 OWNER_ID = int(getenv('owner_id'))
 
 
@@ -54,7 +53,7 @@ async def on_voice_state_update(member, before, after):
         
 @bot.event
 async def on_ready():
-  print(f'Logged as {bot.user.name}#{bot.user.discriminator} (ID: {bot.user.id})')
+  await bot.wait_until_ready()
   await bot.change_presence(
     activity = Activity(
       type = ActivityType.listening, 
@@ -73,6 +72,7 @@ async def on_ready():
   await resource_prepare(bot)
   await maintenance_prepare(bot)
   await player_prepare()
+  print(f'Logged as {bot.user.name}#{bot.user.discriminator} (ID: {bot.user.id})')
 
 
 @bot.command(name = 'restart')
@@ -669,6 +669,7 @@ async def _save(ctx, *, pref = None):
   p = get_player(ctx.author.guild.id)
   if not p:
     return
+  
   if len(p.songs) <= 0:
     embed = Embed(
       title = 'No songs in queue.',
@@ -680,7 +681,7 @@ async def _save(ctx, *, pref = None):
   if (pref == None) or (pref == ''):
     embed = Embed(
       title = 'Need a name for queue to be saved.',
-      description = 'Correct command: save [pref_name]',
+      description = 'Correct command: save <pref>',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -688,19 +689,10 @@ async def _save(ctx, *, pref = None):
     return
   
   
-  res, user_prefs = await resource_load('user_prefs.json')
+  res, prefs = await resource_load('prefs.json')
   if not res:
     embed = Embed(
-      title = user_prefs,
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Error')
-    await ctx.send(embed = embed)
-    return
-  res, guild_prefs = await resource_load('guild_prefs.json')
-  if not res:
-    embed = Embed(
-      title = guild_prefs,
+      title = prefs,
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -709,20 +701,12 @@ async def _save(ctx, *, pref = None):
 
   pref = str(pref)
   key = str(ctx.author.id)
-  if key not in user_prefs:
-    user_prefs[key] = {}
-  user_prefs[key][pref] = []
+  if key not in prefs:
+    prefs[key] = {}
+  prefs[key][pref] = []
   for song in p.songs:
-    user_prefs[key][pref].append(song.to_dic())
-  await resource_save('user_prefs.json', user_prefs)
-
-  key = str(ctx.guild.id)
-  if key not in guild_prefs:
-    guild_prefs[key] = {}
-  guild_prefs[key][pref] = []
-  for song in p.songs:
-    guild_prefs[key][pref].append(song.to_dic())
-  await resource_save('guild_prefs.json', guild_prefs)
+    prefs[key][pref].append(song.to_dic())
+  await resource_save('prefs.json', prefs)
 
   embed = Embed(
     title = f'📄 Current queue has been saved to pref:\n{pref}',
@@ -764,55 +748,33 @@ async def _load(ctx, *, pref = None):
     await ctx.send(embed = embed)
     return
 
+  res, prefs = await resource_load('prefs.json')
+  if not res:
+    embed = Embed(
+      title = prefs,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+  
   pref = str(pref)
+  key = str(ctx.author.id)
 
-  res, user_prefs = await resource_load('user_prefs.json')
-  if not res:
+
+  if key not in prefs:
     embed = Embed(
-      title = user_prefs,
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Error')
-    await ctx.send(embed = embed)
-    return
-
-  res, guild_prefs = await resource_load('guild_prefs.json')
-  if not res:
-    embed = Embed(
-      title = guild_prefs,
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Error')
-    await ctx.send(embed = embed)
-    return
-
-  user_key = str(ctx.author.id)
-  guild_key = str(ctx.guild.id)
-
-  prefs = {}
-  if user_key in user_prefs:
-    for pref_key in user_prefs[user_key].keys():
-      if pref_key not in prefs:
-        prefs[pref_key] = user_prefs[user_key][pref_key]
-  if guild_key in guild_prefs:
-    for pref_key in guild_prefs[guild_key].keys():
-      if pref_key not in prefs:
-        prefs[pref_key] = guild_prefs[guild_key][pref_key]
-
-  
-  if len(prefs) == 0:
-    embed = Embed(
-      title = 'Both you and this guild don\'t have any prefs.',
+      title = 'You don\'t have any prefs saved.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
     return
   
-  if (pref == 'None') or (pref == '') or (pref not in prefs):
+  if (pref == 'None') or (pref == '') or (pref not in prefs[key]):
     embed = Embed(
       title = f'No pref found with: {pref}',
-      description = f'All pref available:\n{", ".join(prefs.keys())}',
+      description = f'All pref available:\n{", ".join(prefs[key].keys())}',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -821,7 +783,7 @@ async def _load(ctx, *, pref = None):
 
   songs = []
   async with ctx.typing():
-    for song_dic in prefs[pref]:
+    for song_dic in prefs[key][pref]:
       songs.append(from_dic(song_dic))
    
   embed = Embed(
@@ -832,24 +794,23 @@ async def _load(ctx, *, pref = None):
   p.text_channel = ctx.channel
   p.songs += songs
   
+  
 @bot.command(name = 'forget')
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _forget(ctx, *, pref = None):
-  pref = str(pref)
-
-  res, user_prefs = await resource_load('user_prefs.json')
+  res, prefs = await resource_load('prefs.json')
   if not res:
     embed = Embed(
-      title = user_prefs,
+      title = prefs,
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
     return
 
-  user_key = str(ctx.author.id)
-  
-  if user_key not in user_prefs:
+  pref = str(pref)
+  key = str(ctx.author.id)
+  if key not in prefs:
     embed = Embed(
       title = 'You don\'t have any pref saved.',
       color = random_color()
@@ -858,18 +819,18 @@ async def _forget(ctx, *, pref = None):
     await ctx.send(embed = embed)
     return
   
-  if (pref == 'None') or (pref == '') or (pref not in user_prefs[user_key]):
+  if (pref == 'None') or (pref == '') or (pref not in prefs[key]):
     embed = Embed(
       title = f'No pref found with: {pref}',
-      description = f'All pref available:\n{", ".join(user_prefs.keys())}',
+      description = f'All pref available:\n{", ".join(prefs[key].keys())}',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
     await ctx.send(embed = embed)
     return
   
-  user_prefs[user_key].pop(pref, None)
-  await resource_save('user_prefs.json', user_prefs)
+  prefs[key].pop(pref, None)
+  await resource_save('prefs.json', prefs)
   embed = Embed(
     title = f'Forgot {pref}.',
     color = random_color()
