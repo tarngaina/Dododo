@@ -4,7 +4,7 @@ from traceback import format_exc as exc
 from discord import File, Forbidden
 
 from maintenance import log
-from until import now_str
+from util import now_str
 
 
 RESOURCE_CHANNEL_ID = 889792058565488660
