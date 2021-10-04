@@ -120,7 +120,7 @@ async def get_source(url, song = None):
   except Exception as e:
     msg = f'{strip_ansi(e)}\n{exc()}'
     await log(msg)
-    return False, strip_ansi(str(e))
+    return False, strip_ansi(str(e)), song
   
   else:
     if song:
