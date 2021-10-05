@@ -1,6 +1,7 @@
 from os import getenv
 from asyncio import get_event_loop
 from traceback import format_exc as exc
+from socket import gethostbyname, gethostname
 
 from discord.ext import tasks
 from discord import File
@@ -57,7 +58,7 @@ async def prepare(bot):
   global restarting
   restarting = False
   update.start()
-  await log('Deployed.')
+  await log(f'Deployed: {gethostbyname(gethostname())}')
 
 
 async def log(text):
