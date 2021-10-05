@@ -1,5 +1,5 @@
 from urllib import parse, request
-from asyncio import get_event_loop
+from asyncio import get_event_loop, new_event_loop
 from traceback import format_exc as exc
 from re import compile, findall
 
@@ -17,7 +17,7 @@ def search(text, limit = 25):
   
   except Exception as e:
     msg = f'{e}\n{exc()}'
-    get_event_loop().create_task(log(msg))
+    new_event_loop().create_task(log(msg))
     return False, str(e)
   
   else:
@@ -51,7 +51,7 @@ async def get_info(url):
   data = None
   try:
     url = r'https://youtu.be/' + url.split('=')[1][:11] if 'list=' in url else url
-    data = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
+    data = await new_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
   
   except Exception as e:
     msg = f'{strip_ansi(e)}\n{exc()}'
@@ -72,7 +72,7 @@ async def get_info(url):
 async def get_info_playlist(url):
   data = None
   try:
-    data = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
+    data = await new_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
   
   except Exception as e:
     msg = f'{strip_ansi(e)}\n{exc()}'
@@ -112,7 +112,7 @@ ytdl_source = YoutubeDL(
 async def get_source(url, song = None):
   data = None
   try: 
-    data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info(url, download=False))
+    data = await new_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info(url, download=False))
   
   except Exception as e:
     msg = f'{strip_ansi(e)}\n{exc()}'
