@@ -41,9 +41,9 @@ ytdl_extract = YoutubeDL(
     'skip_download': True,
     'nocheckcertificate': True,
     'ignoreerrors': False,
-    'quiet': True,
+    'quiet': False,
     'no_warnings': True,
-    'verbose':False
+    'verbose':True
   }
 )
 
