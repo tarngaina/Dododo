@@ -4,7 +4,7 @@ from traceback import format_exc as exc
 from re import compile, findall
 
 from discord import PCMVolumeTransformer, FFmpegOpusAudio
-from youtube_dl import YoutubeDL
+from yt_dlp import YoutubeDL
 
 from song import Song
 from maintenance import restart, log
