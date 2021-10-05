@@ -41,7 +41,6 @@ ytdl_extract = YoutubeDL(
     'quiet': True,
     'simulate': True,
     'skip_download': True,
-    'logtostderr':False,
     'no_warnings': True,
     'verbose':False,
     'source_address': '0.0.0.0'
@@ -103,7 +102,6 @@ ytdl_source = YoutubeDL(
     'noplaylist': True,
     'nocheckcertificate': True,
     'ignoreerrors': False,
-    'logtostderr': True,
     'quiet': False,
     'no_warnings': True,
     'verbose':True
