@@ -37,13 +37,13 @@ def search(text, limit = 25):
 ytdl_extract = YoutubeDL(
   {
     'extract_flat': True, 
-    'ignoreerrors': False,
-    'quiet': True,
     'simulate': True,
     'skip_download': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'quiet': True,
     'no_warnings': True,
-    'verbose':False,
-    'source_address': '0.0.0.0'
+    'verbose':False
   }
 )
 
