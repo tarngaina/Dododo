@@ -103,11 +103,10 @@ ytdl_source = YoutubeDL(
     'noplaylist': True,
     'nocheckcertificate': True,
     'ignoreerrors': False,
-    'logtostderr': False,
+    'logtostderr': True,
     'quiet': False,
     'no_warnings': True,
-    'verbose':True,
-    'source_address': '0.0.0.0'
+    'verbose':True
   }
 )
 
