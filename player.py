@@ -93,7 +93,8 @@ class Player:
           color = random_color()
         )
         embed.set_author(name = '❗ Error')
-        await self.text_channel.send(embed = embed)
+        await self.text_channel.send(embed = embed, delete_after = 20)
+      await sleep(5)
       self.next()
       return
     if self.text_channel:
