@@ -1,6 +1,6 @@
 pip
 pytz
-youtube_dl
+yt-dlp
 PyNaCl
 PyGithub
 discord.py[voice]
