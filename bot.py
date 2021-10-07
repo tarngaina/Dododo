@@ -453,7 +453,7 @@ async def _queue(ctx):
       fixed_duration[-2] += ' minutes'
       if len(fixed_duration) > 2:
         fixed_duration[-3] += ' hours'
-      fixed_duration = ''.join(fixed_duration)
+      fixed_duration = ' '.join(fixed_duration)
       embed.set_footer(text = f'Total #️⃣ {len(p.songs)} songs in 🕒 {fixed_duration}')
     return embed
 
