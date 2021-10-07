@@ -78,7 +78,6 @@ class Player:
     self.task_block = False
     self.current_page = 0
     self.max_page = 0
-    self.help_page = 0
     self.error_block = 0
 
 
