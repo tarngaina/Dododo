@@ -78,9 +78,14 @@ class Player:
     self.task_block = False
     self.current_page = 0
     self.max_page = 0
+    self.help_page = 0
+    self.error_block = 0
 
 
   async def play(self):
+    if self.error_block > 0:
+      self.error_block -= 1
+      retun
     song = self.songs[self.current]
     res, audio_source, song = await get_source(song.url, song = song)
     if not res:
@@ -93,10 +98,12 @@ class Player:
           color = random_color()
         )
         embed.set_author(name = '❗ Error')
+        embed.set_footer(text = 'Atuo skip to next song in 3 seconds.')
         await self.text_channel.send(embed = embed, delete_after = 20)
-      await sleep(5)
       self.next()
+      self.error_block = 3
       return
+    
     if self.text_channel:
       embed = Embed(
         title = f'{song.to_str()}',
@@ -124,7 +131,9 @@ class Player:
           color = random_color()
         )
         embed.set_author(name = '❗ Error')
+        embed.set_footer(text = 'Gonna skip to next song in 3 seconds.')
         get_event_loop().create_task(self.text_channel.send(embed = embed))
+      self.error_block = 3
       return
       
     self.next()
