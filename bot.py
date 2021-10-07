@@ -6,7 +6,7 @@ from discord import Embed, Intents, Activity, ActivityType
 from dislash import InteractionClient, SelectMenu, SelectOption, ActionRow, Button, ButtonStyle
 
 from player import prepare as player_prepare, get_player, get_players, add_player, remove_player
-from song import from_dic
+from song import from_dic, Song
 from youtube import search as youtube_search, get_info, get_info_playlist
 from util import to_int, random_color
 from resource import prepare as resource_prepare, load as resource_load, save as resource_save
@@ -443,6 +443,12 @@ async def _queue(ctx):
     if p.loop == 2:
       name = 'Loop 🔁 All'
     embed.add_field(name = name, value = value, inline = True)
+    if len(p.songs) > 0:
+      duration = 0
+      for song in p.songs:
+        duration += song.duration
+      s = Song('', '', duration, '')
+      embed.set_footer(text = f'Total #️⃣ {len(p.songs)} songs in 🕒 {s.fixed_duration()}')
     return embed
 
   p = get_player(ctx.author.guild.id)
