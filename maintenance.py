@@ -44,7 +44,7 @@ async def restart():
 async def update():
   global count, bot_instance
   count += 1
-  if count > 28000:
+  if count > 25000:
     if len(bot_instance.voice_clients) == 0:
       await restart()
       
