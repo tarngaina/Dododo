@@ -85,7 +85,7 @@ class Player:
   async def play(self):
     if self.error_block > 0:
       self.error_block -= 1
-      retun
+      return
     song = self.songs[self.current]
     res, audio_source, song = await get_source(song.url, song = song)
     if not res:
