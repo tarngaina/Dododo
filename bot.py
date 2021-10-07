@@ -448,7 +448,13 @@ async def _queue(ctx):
       for song in p.songs:
         duration += song.duration
       s = Song('', '', duration, '')
-      embed.set_footer(text = f'Total #️⃣ {len(p.songs)} songs in 🕒 {s.fixed_duration()}')
+      fixed_duration = s.fixed_duration().split(':')
+      fixed_duration[-1] += ' seconds'
+      fixed_duration[-2] += ' minutes'
+      if len(fixed_duration) > 2:
+        fixed_duration[-3] += ' hours'
+      fixed_duration = ''.join(fixed_duration)
+      embed.set_footer(text = f'Total #️⃣ {len(p.songs)} songs in 🕒 {fixed_duration}')
     return embed
 
   p = get_player(ctx.author.guild.id)
