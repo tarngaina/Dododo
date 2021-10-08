@@ -99,8 +99,9 @@ class Player:
         embed.set_author(name = '❗ Error')
         embed.set_footer(text = 'Atuo skip to next song in 3 seconds.')
         await self.text_channel.send(embed = embed, delete_after = 20)
-      self.next()
       self.error_block = 3
+      self.next()
+      self.is_playing = False
       return
     
     if self.text_channel:
@@ -133,7 +134,6 @@ class Player:
         embed.set_footer(text = 'Gonna skip to next song in 3 seconds.')
         get_event_loop().create_task(self.text_channel.send(embed = embed))
       self.error_block = 3
-      return
       
     self.next()
     self.is_playing = False
