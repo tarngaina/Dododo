@@ -377,7 +377,7 @@ async def _jump(ctx, param = None):
     url, thumbnail = None, None
     if p.current < len(p.songs):
       song = p.songs[p.current]
-      msg = song.to_str()
+      msg = song.to_str(False)
       url = song.url
       if song.thumbnail:
         thumbnail = song.thumbnail
@@ -434,7 +434,7 @@ async def _queue(ctx):
     for i in range(0, 10):
       index = (current_page-1) * 10 + i
       if index < len(p.songs):
-        field = f'[{index+1}] {p.songs[index].to_str()}'
+        field = f'{index+1} {p.songs[index].to_str()}'
         field = '▶️ ' + field if index == p.current else '#️⃣ ' + field
         value += field + '\n'
     name = 'Loop ↩️ Off'
