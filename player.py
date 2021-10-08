@@ -91,7 +91,7 @@ class Player:
       if self.text_channel:
         msg = audio_source
         embed = Embed(
-          title = f'{self.songs[self.current].to_str()}',
+          title = song.to_str(False),
           description = msg,
           url = self.songs[self.current].url,
           color = random_color()
@@ -105,7 +105,7 @@ class Player:
     
     if self.text_channel:
       embed = Embed(
-        title = f'{song.to_str()}',
+        title = song.to_str(False),
         url = song.url,
         color = random_color()
       )
@@ -124,7 +124,7 @@ class Player:
     if error:
       if self.text_channel:
         embed = Embed(
-          title = f'{self.songs[self.current].to_str()}',
+          title = self.songs[self.current].to_str(False),
           description = str(error),
           url = self.songs[self.current].url,
           color = random_color()
