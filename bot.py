@@ -435,7 +435,7 @@ async def _queue(ctx):
       index = (current_page-1) * 10 + i
       if index < len(p.songs):
         field = f'{index+1} {p.songs[index].to_str()}'
-        field = '▶️ ' + field if index == p.current else '#️⃣ ' + field
+        field = '▶️' + field if index == p.current else '#️⃣' + field
         value += field + '\n'
     name = 'Loop ↩️ Off'
     if p.loop == 1:
