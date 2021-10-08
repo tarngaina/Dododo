@@ -50,9 +50,11 @@ class Song:
       t = t[:limit] + '...'
     return t
   
-  def to_str(self):
-    return f'[{self.fixed_duration()}] {self.fixed_title()} - {self.fixed_uploader()}';
-  
+  def to_str(self, limit = True):
+    if limit:
+      return f'[{self.fixed_duration()}] {self.fixed_title()} - {self.fixed_uploader()}';
+    else:
+      return f'[{self.fixed_duration()}] {self.fixed_title(999)} - {self.fixed_uploader(999)}';
 
 def from_dic(dic):
   return Song(
