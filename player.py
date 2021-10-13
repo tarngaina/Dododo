@@ -150,4 +150,3 @@ class Player:
       if self.current >= len(self.songs):
         self.current = len(self.songs)-1
 
- 
