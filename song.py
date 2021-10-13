@@ -54,7 +54,7 @@ class Song:
     if limit:
       return f'🕒{self.fixed_duration()} 🎵{self.fixed_title()} - 👤{self.fixed_uploader()}';
     else:
-      return f'🕒{self.fixed_duration()} để 🎵{self.fixed_title(999)} - 👤{self.fixed_uploader(999)}';
+      return f'🕒{self.fixed_duration()} 🎵{self.fixed_title(999)} - 👤{self.fixed_uploader(999)}';
 
 def from_dic(dic):
   return Song(
