@@ -10,7 +10,7 @@ from song import Song
 from maintenance import restart, log
 from util import strip_ansi
 
-def search(text, limit = 25):
+def search(text, limit = 24):
   ids = None
   try:
     ids = findall(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
@@ -43,7 +43,9 @@ ytdl_extract = YoutubeDL(
     'ignoreerrors': False,
     'quiet': False,
     'no_warnings': True,
-    'verbose':True
+    'verbose':True,
+    'ignore_no_formats_error':True,
+    'no_color':True
   }
 )
 
@@ -60,14 +62,18 @@ async def get_info(url):
   
   else: 
     entry = data
-    song = Song(
-      entry['title'],
-      entry['uploader'],
-      int(entry['duration']),
-      r'https://youtu.be/' + entry['id'],
-      thumbnail = entry['thumbnail']
-    )
-    return True, song
+    if ('title' in entry) and ('uploader' in entry) and ('duration' in entry):
+      if (entry['title'] != None) and (entry['uploader'] != None) and (entry['duration'] != None):
+        song = Song(
+          entry['title'],
+          entry['uploader'],
+          int(entry['duration']),
+          r'https://youtu.be/' + entry['id'],
+          thumbnail = entry['thumbnail']
+        )
+        return True, song
+    return False, 'Song not found.'
+
 
 async def get_info_playlist(url):
   data = None
@@ -77,21 +83,34 @@ async def get_info_playlist(url):
   except Exception as e:
     msg = f'{strip_ansi(e)}\n{exc()}'
     await log(msg)
-    return False, strip_ansi(str(e))
+    return False, strip_ansi(str(e)), None
   
   else:
-    await log(str(data))
+    infos = {}
+    if 'title' in data:
+      infos['title'] = data['title']
+    if 'uploader' in data:
+      infos['uploader'] = data['uploader']
+    if 'original_url' in data:
+      infos['url'] = data['original_url']
+    if 'thumbnails' in data:
+      if data['thumbnails'] != None:
+        infos['thumbnail'] = data['thumbnails'][-1]['url'].split('?')[0]
+
     songs = []
-    for entry in data['entries']:
-      songs.append(
-        Song(
-          entry['title'],
-          entry['uploader'],
-          int(entry['duration']),
-          r'https://youtu.be/' + entry['id']
-        )
-      )
-    return True, songs
+    if 'entries' in data:
+      for entry in data['entries']:
+        if ('title' in entry) and ('uploader' in entry) and ('duration' in entry):
+          if (entry['title'] != None) and (entry['uploader'] != None) and (entry['duration'] != None):
+            songs.append(
+              Song(
+                entry['title'],
+                entry['uploader'],
+                int(entry['duration']),
+                r'https://youtu.be/' + entry['id']
+              )
+            )
+    return True, songs, infos
     
 
 ytdl_source = YoutubeDL(
@@ -105,10 +124,10 @@ ytdl_source = YoutubeDL(
     'ignoreerrors': False,
     'quiet': False,
     'no_warnings': True,
-    'verbose':True
+    'verbose':True,
+    'no_color':True
   }
 )
-
 
 async def get_source(url, song = None):
   data = None
@@ -121,9 +140,6 @@ async def get_source(url, song = None):
     return False, strip_ansi(str(e)), song
   
   else:
-    if song:
-      song.title = data['title']
-      song.uploader = data['uploader']
-      song.thumbnail = data['thumbnail']
+    song.update(title = data['title'], uploader = data['uploader'], thumbnail = data['thumbnail'])
     return True, FFmpegOpusAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), song
   
