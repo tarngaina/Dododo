@@ -6,13 +6,34 @@ class Song:
     self.url = url
     self.thumbnail = thumbnail
 
-  def to_dic(self):
+  @classmethod
+  def from_dict(cls, dic):
+    return cls(
+      dic['title'],
+      dic['uploader'],
+      dic['duration'],
+      dic['url']
+    )
+
+  def to_dict(self):
     return {
       'title': self.title,
       'uploader': self.uploader,
       'duration': self.duration,
       'url': self.url
     }
+
+  def update(self, **dic):
+    if 'title' in dic:
+      self.title = dic['title']
+    if 'uploader' in dic:
+      self.uploader = dic['uploader']
+    if 'duration' in dic:
+      self.duration = dic['duration']
+    if 'url' in dic:
+      self.url = dic['url']
+    if 'thumbnail' in dic:
+      self.thumbnail = dic['thumbnail']
 
   def fixed_duration(self):
     m, s = divmod(self.duration, 60)
@@ -55,11 +76,3 @@ class Song:
       return f'🕒 {self.fixed_duration()} 🎵 {self.fixed_title()} 👤 {self.fixed_uploader()}';
     else:
       return f'🕒 {self.fixed_duration()} 🎵 {self.fixed_title(999)} 👤 {self.fixed_uploader(999)}';
-
-def from_dic(dic):
-  return Song(
-    dic['title'],
-    dic['uploader'],
-    dic['duration'],
-    dic['url']
-)
