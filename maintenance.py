@@ -9,14 +9,12 @@ from github import Github
 
 from util import now_str
 
-
 GTOKEN = getenv('gtoken')
 LOG_CHANNEL_ID = 891652708975673354
 log_channel = None
 restarting = False
 count = 0
-bot_instance = None
-
+get_players = None
 
 def is_restarting():
   global restarting
@@ -42,17 +40,18 @@ async def restart():
   
 @tasks.loop(seconds = 1)
 async def update():
-  global count, bot_instance
+  global count
   count += 1
-  if count > 25000:
-    if len(bot_instance.voice_clients) == 0:
+  if count > 30000:
+    global get_players
+    if len(get_players()) == 0:
       await restart()
       
 
-async def prepare(bot):
+async def prepare(bot, gp):
   await bot.wait_until_ready()
-  global bot_instance
-  bot_instance = bot
+  global get_players
+  get_players = gp
   global log_channel
   log_channel = bot.get_channel(LOG_CHANNEL_ID)
   global restarting
