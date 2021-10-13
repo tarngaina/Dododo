@@ -93,7 +93,7 @@ help_page = 1
 async def _help(ctx):
   def create_embed(page):
     embed = Embed(
-      title = '📜 All commands',
+      title = f'All commands 📜 {page}/{4}',
       color = random_color()
     )
     if page == 1:
@@ -424,7 +424,7 @@ async def _jump(ctx, param = None):
 async def _queue(ctx):
   def create_embed(current_page, max_page): 
     embed = Embed(
-      title = f'Page 🎵 {current_page} / {max_page}',
+      title = f'Queue 📜 {current_page} / {max_page}',
       color = random_color()
     )
     value = ''
