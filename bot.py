@@ -4,9 +4,10 @@ from random import shuffle
 from discord.ext import commands
 from discord import Embed, Intents, Activity, ActivityType
 from dislash import InteractionClient, SelectMenu, SelectOption, ActionRow, Button, ButtonStyle
+from asyncio import sleep
 
 from player import prepare as player_prepare, get_player, get_players, add_player, remove_player
-from song import from_dic, Song
+from song import Song
 from youtube import search as youtube_search, get_info, get_info_playlist
 from util import to_int, random_color
 from resource import prepare as resource_prepare, load as resource_load, save as resource_save
@@ -70,7 +71,7 @@ async def on_ready():
   for p in get_players():
     p.member = len(p.voice_client.channel.members)
   await resource_prepare(bot)
-  await maintenance_prepare(bot)
+  await maintenance_prepare(bot, get_players)
   await player_prepare()
 
 
@@ -93,7 +94,7 @@ help_page = 1
 async def _help(ctx):
   def create_embed(page):
     embed = Embed(
-      title = f'All commands 📜 {page}/{4}',
+      title = f'Commands 📜 {page}/{4}',
       color = random_color()
     )
     if page == 1:
@@ -187,7 +188,16 @@ async def _leave(ctx):
       
 @bot.command(name = 'search', aliases = ['s', 'find', 'f'])
 async def _search(ctx, *, query):  
-  res, urls = youtube_search(query, limit = 8)
+  if (query == None) or (query == ''):
+    embed = Embed(
+      title = 'You need to enter a query to search it.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+
+  res, urls = youtube_search(query)
   if not res:
     msg = urls
     embed = Embed(
@@ -200,6 +210,8 @@ async def _search(ctx, *, query):
   options = []
   async with ctx.typing():
     for url in urls:
+      if len(options) > 9:
+        break
       res, song = await get_info(url)
       if res:
         options.append(SelectOption(label = f'🎵 {song.fixed_title(1000)}', value = url, description = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(1000)}'))
@@ -270,10 +282,11 @@ async def _play(ctx, *, text):
     return
   
   songs = None
+  infos = None
   async with ctx.typing():
     if ('youtu.be' in text) or ('youtube.com' in text):
       if 'playlist?' in text:
-        res, songs = await get_info_playlist(text)
+        res, songs, infos = await get_info_playlist(text)
         if not res:
           embed = Embed(
             title = songs,
@@ -335,13 +348,31 @@ async def _play(ctx, *, text):
     await ctx.send(embed = embed)
   else:
     embed = Embed(
-      title = f'⏏️ Enqueued {len(songs)} songs.',
+      title = f'🎵 {len(songs)} songs from 📜 {infos["title"]} 👤 {infos["uploader"]}',
+      url = infos['url'],
       color = random_color()
     )
+    embed.set_thumbnail(url = infos['thumbnail'])
+    embed.set_author(name = '⏏️ Enqueued')
     embed.set_footer(text = f'#️⃣ {len(p.songs)+1}/{len(p.songs)+len(songs)}')
     await ctx.send(embed = embed)
   p.text_channel = ctx.channel
   p.songs += songs
+
+
+@bot.command(name = 'back', aliases = ['prev', 'previous', 'bacc'])
+async def _back(ctx):
+  p = get_player(ctx.author.guild.id)
+  if not p:
+    return
+  
+  if p.voice_client.is_playing():
+    if p.current - 2 < -1:
+      p.current = -1
+    else:
+      p.current -= 2
+    p.voice_client.stop()
+  await ctx.message.add_reaction('⏮')
 
   
 @bot.command(name = 'skip', aliases = ['next'])
@@ -354,8 +385,123 @@ async def _skip(ctx):
     p.voice_client.stop()
   await ctx.message.add_reaction('⏭️')
     
+
+@bot.command(name = 'current', aliases = ['c', 'now', 'info'])
+async def _current(ctx):
+  def create_embed(p):
+    if len(p.songs) <= 0:
+      embed = Embed(
+        title = 'No songs in queue.',
+        color = random_color()
+      )
+      return embed
+
+    song = p.songs[p.current]
+    embed = Embed(
+      title = song.to_str(limit = False),
+      url = song.url,
+      color = random_color()
+    )
+    if song.thumbnail:
+      embed.set_thumbnail(url = song.thumbnail)
+    embed.set_author(name = '▶️ Now playing')
+    embed.set_footer(text = f'#️⃣ {p.current+1}/{len(p.songs)}')
+    return embed
+
+  p = get_player(ctx.author.guild.id)
+  if not p:
+    return
+
+  embed = create_embed(p)
+  components = [
+    ActionRow(
+      Button(
+        style = ButtonStyle.blurple,
+        label = "<<",
+        custom_id = "previous_button"
+      ),
+      Button(
+        style = ButtonStyle.blurple,
+        label = "❚❚",
+        custom_id = "pause_button"
+      ),
+      Button(
+        style = ButtonStyle.blurple,
+        label = "▶",
+        custom_id = "resume_button"
+      ),
+      Button(
+        style = ButtonStyle.blurple,
+        label = ">>",
+        custom_id = "next_button"
+      )
+    )
+  ]
+  message = await ctx.send(embed = embed, components = components)
+  on_click = message.create_click_listener(timeout = 300)
+
+  @on_click.matching_id("previous_button")
+  async def on_left_button(inter):
+    p = get_player(inter.author.guild.id)
+    if not p:
+      await inter.message.delete()
+      return
+
+    sec = 3
+    await inter.reply('Please wait...', delete_after = sec)
+    await _back(inter)
+    await sleep(sec)
+    await inter.message.edit(embed = create_embed(p))
+    if inter.message.embeds[0].title.startswith('No songs in queue.'):
+      await inter.message.edit(components=[])
     
-@bot.command(name = 'jump', aliases = ['c', 'current', 'move'])
+  @on_click.matching_id("next_button")
+  async def on_right_button(inter):
+    p = get_player(inter.author.guild.id)
+    if not p:
+      await inter.message.delete()
+      return 
+
+    sec = 3
+    await inter.reply('Please wait...', delete_after = sec)
+    await _skip(inter)
+    await sleep(sec)
+    await inter.message.edit(embed = create_embed(p))
+    if inter.message.embeds[0].title.startswith('No songs in queue.'):
+      await inter.message.edit(components=[])
+
+  @on_click.matching_id("pause_button")
+  async def on_right_button(inter):
+    p = get_player(inter.author.guild.id)
+    if not p:
+      await inter.message.delete()
+      return
+
+    await inter.reply('Please wait...', delete_after = 0)
+    await _pause(inter)
+    await inter.message.edit(embed = create_embed(p))
+    if inter.message.embeds[0].title.startswith('No songs in queue.'):
+      await inter.message.edit(components=[])
+
+  @on_click.matching_id("resume_button")
+  async def on_right_button(inter):
+    p = get_player(inter.author.guild.id)
+    if not p:
+      await inter.message.delete()
+      return
+
+    await inter.reply('Please wait...', delete_after = 0)
+    await _resume(inter)
+    await inter.message.edit(embed = create_embed(p))
+    if inter.message.embeds[0].title.startswith('No songs in queue.'):
+      await inter.message.edit(components=[])
+    
+  @on_click.timeout
+  async def on_timeout():
+    await message.edit(components=[])
+
+
+@bot.command(name = 'jump', aliases = ['move'])
 async def _jump(ctx, param = None):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -370,61 +516,49 @@ async def _jump(ctx, param = None):
     return
   
   if param == None:
-    msg = 'No song found with current index.'
-    url, thumbnail = None, None
-    if p.current < len(p.songs):
-      song = p.songs[p.current]
-      msg = song.to_str(False)
-      url = song.url
-      if song.thumbnail:
-        thumbnail = song.thumbnail
     embed = Embed(
-      title = msg,
+      title = f'You need to enter an index.',
       color = random_color()
     )
-    if url:
-      embed.url = url
-    if thumbnail:
-      embed.set_thumbnail(url = thumbnail)
-    embed.set_author(name = '▶️ Now playing')
-    embed.set_footer(text = f'#️⃣ {p.current+1}/{len(p.songs)}')
-    await ctx.send(embed = embed) 
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+
+  res, i = to_int(param)
+  if not res:
+    embed = Embed(
+      title = f'{i} is not integer.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+    
+  i -= 1
+  if (i < 0) or (i > len(p.songs)):
+    embed = Embed(
+      title = f'Index {i+1} out of queue range {len(p.songs)}.',
+      description = f'Current range: 1 -> {len(p.songs)}',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+    
+    
+  if p.voice_client.is_playing():
+    p.current = i-1
+    p.voice_client.stop()
   else:
-    res, i = to_int(param)
-    if not res:
-      embed = Embed(
-        title = f'Param {i} is not integer.',
-        color = random_color()
-      )
-      embed.set_author(name = '❗ Error')
-      await ctx.send(embed = embed)
-      return
-    
-    i -= 1
-    if (i < 0) or (i > len(p.songs)):
-      embed = Embed(
-        title = f'Param index {i+1} out of queue range {len(p.songs)}.',
-        description = f'Current range: 1 -> {len(p.songs)}',
-        color = random_color()
-      )
-      embed.set_author(name = '❗ Error')
-      await ctx.send(embed = embed)
-      return
-    
-    
-    if p.voice_client.is_playing():
-      p.current = i-1
-      p.voice_client.stop()
-    else:
-      p.current = i
-    await ctx.message.add_reaction('✅')
+    p.current = i
+  await ctx.message.add_reaction('✅')
       
      
 @bot.command(name = 'queue', aliases = ['q', 'playlist', 'list', 'all'])
 async def _queue(ctx):
   def create_embed(current_page, max_page): 
     embed = Embed(
-      title = f'Queue 📜 {current_page} / {max_page}',
+      title = f'Songs 📜 {current_page} / {max_page}',
       color = random_color()
     )
     value = ''
@@ -432,7 +566,7 @@ async def _queue(ctx):
       index = (current_page-1) * 10 + i
       if index < len(p.songs):
         field = f'{index+1} {p.songs[index].to_str()}'
-        field = '▶️' + field if index == p.current else '#️⃣' + field
+        field = '▶️ ' + field if index == p.current else '#️⃣ ' + field
         value += field + '\n'
     name = 'Loop ↩️ Off'
     if p.loop == 1:
@@ -551,7 +685,7 @@ async def _remove(ctx, param = None):
     return
   if param == None:
     embed = Embed(
-      title = f'Type in index of the song to remove it from queue: remove [song_index]',
+      title = f'You need to enter an index.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -561,7 +695,7 @@ async def _remove(ctx, param = None):
   res, i = to_int(param)
   if not res:
     embed = Embed(
-      title = f'Param {i} is not integer.',
+      title = f'{i} is not integer.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -570,7 +704,7 @@ async def _remove(ctx, param = None):
   i -= 1
   if (i < 0) or (i >= len(p.songs)):
     embed = Embed(
-      title = f'Param index {i+1} out of queue range {len(p.songs)}.',
+      title = f'Index {i+1} out of queue range {len(p.songs)}.',
       description = f'Current range: 1 -> {len(p.songs)}',
       color = random_color()
     )
@@ -714,7 +848,7 @@ async def _save(ctx, *, pref = None):
     prefs[key] = {}
   prefs[key][pref] = []
   for song in p.songs:
-    prefs[key][pref].append(song.to_dic())
+    prefs[key][pref].append(song.to_dict())
   await resource_save('prefs.json', prefs)
   await ctx.message.add_reaction('✅')
   
@@ -788,12 +922,14 @@ async def _load(ctx, *, pref = None):
   songs = []
   async with ctx.typing():
     for song_dic in prefs[key][pref]:
-      songs.append(from_dic(song_dic))
-   
+      songs.append(Song.from_dict(song_dic))
+    
+
   embed = Embed(
-    title = f'⏏️ Enqueued {len(songs)} songs from pref: {pref}.',
+    title = f'🎵 {len(songs)} songs from 📜 {pref} 👤 {ctx.author.display_name}',
     color = random_color()
   )
+  embed.set_author(name = '⏏️ Enqueued')
   embed.set_footer(text = f'{len(p.songs)+1}/{len(p.songs)+len(songs)}')
   await ctx.send(embed = embed)
   p.text_channel = ctx.channel
@@ -817,7 +953,7 @@ async def _forget(ctx, *, pref = None):
   key = str(ctx.author.id)
   if key not in prefs:
     embed = Embed(
-      title = 'You don\'t have any pref saved.',
+      title = 'You don\'t have any prefs saved.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
