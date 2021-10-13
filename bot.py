@@ -72,7 +72,6 @@ async def on_ready():
   await resource_prepare(bot)
   await maintenance_prepare(bot)
   await player_prepare()
-  print(f'Logged as {bot.user.name}#{bot.user.discriminator} (ID: {bot.user.id})')
 
 
 @bot.command(name = 'restart')
@@ -106,14 +105,14 @@ async def _help(ctx):
       embed.add_field(name = '#️⃣queue/q/playlist/list/all', value = 'Show queue.', inline = False)
       embed.add_field(name = '#️⃣current/c', value = 'Show current song info.', inline = False) 
       embed.add_field(name = '#️⃣skip/next', value = 'Skip current song.', inline = False)
-      embed.add_field(name = '#️⃣jump/move [index]', value = 'Jump to specific song in queue by index.', inline = False)
-      embed.add_field(name = '#️⃣remove/delete/del <index>', value = 'Remove a specific song in queue by index.', inline = False)
+      embed.add_field(name = '#️⃣jump/move [index]', value = 'Jump to specific song in queue by its index.', inline = False)
+      embed.add_field(name = '#️⃣remove/delete/del <index>', value = 'Remove specific song in queue by its index.', inline = False)
       embed.add_field(name = '#️⃣clear/clean/reset', value = 'Clear all songs in queue.', inline = False)
     elif page == 3:  
       embed.add_field(name = '#️⃣pause', value = 'Pause current song if playing.', inline = False)
       embed.add_field(name = '#️⃣resume', value = 'Resume current song if paused.', inline = False)
-      embed.add_field(name = '#️⃣shuffle', value = 'Shuffle and play again the queue.', inline = False)
-      embed.add_field(name = '#️⃣loop/repeat/r [mode]', value = 'Change loop/repeat mode of player: off/single/all', inline = False)
+      embed.add_field(name = '#️⃣shuffle', value = 'Shuffle and play queue again.', inline = False)
+      embed.add_field(name = '#️⃣loop/repeat/r [mode]', value = 'Change loop/repeat mode: off/single/all', inline = False)
     else:
       embed.add_field(name = '#️⃣save <pref>', value = 'Save queue to a pref.', inline = False)
       embed.add_field(name = '#️⃣load <pref>', value = 'Load and add all songs from a pref to queue.', inline = False)
@@ -138,7 +137,7 @@ async def _help(ctx):
     )
   ]
   message = await ctx.send(embed = embed, components = components)
-  on_click = message.create_click_listener(timeout = 120)
+  on_click = message.create_click_listener(timeout = 300)
 
   @on_click.matching_id("left_button")
   async def on_left_button(inter):
@@ -218,12 +217,9 @@ async def _search(ctx, *, query):
     color = random_color()
   )
   message = await ctx.send(embed = embed, components = components, delete_after = 60)
- 
-  def check(inter):
-    return inter.author == ctx.author
 
   try:
-    inter = await message.wait_for_dropdown(check, timeout = 60)
+    inter = await message.wait_for_dropdown(timeout = 300)
     url = inter.select_menu.selected_options[0].value
     await message.delete(delay = 1) 
     await _play(ctx, text = url)
@@ -236,7 +232,6 @@ async def _play(ctx, *, text):
   if is_restarting():
     embed = Embed(
       title = 'This bot is restarting to update its component, please try again in 2 minutes.',
-      description = 'Why is this happening?: YouTube updates itself everyday, so does this bot.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -267,7 +262,7 @@ async def _play(ctx, *, text):
   
   if (text == None) or (text == ''):
     embed = Embed(
-      title = 'No param found, you need to enter an url or a query to be searched.',
+      title = 'You need to enter an url or a query.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
@@ -301,7 +296,7 @@ async def _play(ctx, *, text):
     else:
       if text.startswith('http') or text.startswith('www'):
         embed = Embed(
-          title = 'Sorry this bot only support YouTube.',
+          title = 'This bot only supports YouTube.',
           color = random_color()
         )
         embed.set_author(name = '❗ Error')
@@ -336,12 +331,14 @@ async def _play(ctx, *, text):
       color = random_color()
     )
     embed.set_author(name = '⏏️ Enqueued')
+    embed.set_footer(text = f'#️⃣ {len(p.songs)+1}/{len(p.songs)+1}')
     await ctx.send(embed = embed)
   else:
     embed = Embed(
       title = f'⏏️ Enqueued {len(songs)} songs.',
       color = random_color()
     )
+    embed.set_footer(text = f'#️⃣ {len(p.songs)+1}/{len(p.songs)+len(songs)}')
     await ctx.send(embed = embed)
   p.text_channel = ctx.channel
   p.songs += songs
@@ -355,7 +352,7 @@ async def _skip(ctx):
   
   if p.voice_client.is_playing():
     p.voice_client.stop()
-  await ctx.message.add_reaction('✅')
+  await ctx.message.add_reaction('⏭️')
     
     
 @bot.command(name = 'jump', aliases = ['c', 'current', 'move'])
@@ -719,12 +716,7 @@ async def _save(ctx, *, pref = None):
   for song in p.songs:
     prefs[key][pref].append(song.to_dic())
   await resource_save('prefs.json', prefs)
-
-  embed = Embed(
-    title = f'📄 Current queue has been saved to pref:\n{pref}',
-    color = random_color()
-  )
-  await ctx.send(embed = embed)
+  await ctx.message.add_reaction('✅')
   
 @bot.command(name = 'load')
 @commands.cooldown(1, 3, commands.BucketType.guild)
@@ -799,9 +791,10 @@ async def _load(ctx, *, pref = None):
       songs.append(from_dic(song_dic))
    
   embed = Embed(
-    title = f'⏏️ Enqueued {len(songs)} songs from pref:\n{pref}.',
+    title = f'⏏️ Enqueued {len(songs)} songs from pref: {pref}.',
     color = random_color()
   )
+  embed.set_footer(text = f'{len(p.songs)+1}/{len(p.songs)+len(songs)}')
   await ctx.send(embed = embed)
   p.text_channel = ctx.channel
   p.songs += songs
@@ -843,11 +836,7 @@ async def _forget(ctx, *, pref = None):
   
   prefs[key].pop(pref, None)
   await resource_save('prefs.json', prefs)
-  embed = Embed(
-    title = f'Forgot {pref}.',
-    color = random_color()
-  )
-  await ctx.send(embed = embed)
+  await ctx.message.add_reaction('✅')
     
     
 bot.run(getenv('token'))
