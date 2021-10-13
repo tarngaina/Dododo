@@ -80,6 +80,7 @@ async def get_info_playlist(url):
     return False, strip_ansi(str(e))
   
   else:
+    await log(str(data))
     songs = []
     for entry in data['entries']:
       songs.append(
