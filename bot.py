@@ -202,7 +202,7 @@ async def _search(ctx, *, query):
     for url in urls:
       res, song = await get_info(url)
       if res:
-        options.append(SelectOption(label = f'🎵{song.fixed_title(1000)}', value = url, description = f'🕒{song.fixed_duration()} 👤{song.fixed_uploader(1000)}'))
+        options.append(SelectOption(label = f'🎵 {song.fixed_title(1000)}', value = url, description = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(1000)}'))
   
   components = [
     SelectMenu(
