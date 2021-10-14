@@ -94,7 +94,7 @@ help_page = 1
 async def _help(ctx):
   def create_embed(page):
     embed = Embed(
-      title = f'Commands 📜 {page}/{4}',
+      title = f'📜 {page}/{4}',
       color = random_color()
     )
     if page == 1:
@@ -567,18 +567,18 @@ async def _queue(ctx):
       index = (current_page-1) * 10 + i
       if index < len(p.songs):
         song = p.songs[index]
-        embed.add_field(name = f'{"▶️ " if index == p.current else "#️⃣ "} {index+1} 🎵 {song.fixed_title()}', value = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader()}', inline = False)
+        embed.add_field(name = f'{"▶️ " if index == p.current else "#️⃣ "} {index+1} 🎵 {song.fixed_title(1000)}', value = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(1000)}', inline = False)
     duration = 0
     for song in p.songs:
       duration += song.duration
     s = Song('', '', duration, '')
-    text = f'#️⃣ {len(p.songs)} 🕒 {s.fixed_duration()}'
+    text = f'#️⃣ {len(p.songs)} songs in 🕒 {s.fixed_duration()}'
     loop = '↩️ Off'
     if p.loop == 1:
       loop = '🔂 Single'
     if p.loop == 2:
       loop = '🔁 All'
-    text += ' ' + loop            
+    text = loop + ' ' + text   
     embed.set_footer(text = text)
     return embed
 
@@ -765,7 +765,7 @@ async def _loop(ctx, param = None):
     else:
       embed = Embed(
         title = 'Wrong param.',
-        description = 'Correct param: \n↩️: 0/off\n🔂: 1/single/one\n🔁: 2/all/queue',
+        description = 'Correct param: \n↩️ 0/off\n🔂 1/single/one\n🔁 2/all/queue',
         color = random_color()
       )
       embed.set_author(name = '❗ Error')
