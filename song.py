@@ -62,7 +62,7 @@ class Song:
       t = t[:limit] + '...'
     return t
   
-  def fixed_description(self, limit = 400):
+  def fixed_description(self, limit = 300):
     t = self.description
     t = '\n'.join([s for s in t.split('\n') if s != ''])
     t = ' '.join([s for s in t.split(' ') if s != ''])
