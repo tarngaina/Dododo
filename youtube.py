@@ -3,7 +3,7 @@ from asyncio import get_event_loop
 from traceback import format_exc as exc
 from re import compile, findall
 
-from discord import PCMVolumeTransformer, FFmpegOpusAudio
+from discord import PCMVolumeTransformer, FFmpegOpusAudio, FFmpegPCMAudio
 from yt_dlp import YoutubeDL
 
 from song import Song
@@ -62,16 +62,11 @@ async def get_info(url):
   
   else: 
     entry = data
-    if ('title' in entry) and ('uploader' in entry) and ('duration' in entry):
-      if (entry['title'] != None) and (entry['uploader'] != None) and (entry['duration'] != None):
-        song = Song(
-          entry['title'],
-          entry['uploader'],
-          int(entry['duration']),
-          r'https://youtu.be/' + entry['id'],
-          thumbnail = entry['thumbnail']
-        )
-        return True, song
+    if ('duration' in entry) and (entry['duration']):
+      song = Song(**entry)
+      song.update(url = r'https://youtu.be/' + entry['id'])
+      print(song.url)
+      return True, song
     return False, 'Song not found.'
 
 
@@ -98,18 +93,12 @@ async def get_info_playlist(url):
         infos['thumbnail'] = data['thumbnails'][-1]['url'].split('?')[0]
 
     songs = []
-    if 'entries' in data:
+    if ('entries' in data) and (data['entries']):
       for entry in data['entries']:
-        if ('title' in entry) and ('uploader' in entry) and ('duration' in entry):
-          if (entry['title'] != None) and (entry['uploader'] != None) and (entry['duration'] != None):
-            songs.append(
-              Song(
-                entry['title'],
-                entry['uploader'],
-                int(entry['duration']),
-                r'https://youtu.be/' + entry['id']
-              )
-            )
+        if ('duration' in entry) and (entry['duration']):
+          song = Song(**entry)
+          song.update(url = r'https://youtu.be/' + entry['id'])
+          songs.append(song)
     return True, songs, infos
     
 
@@ -141,5 +130,5 @@ async def get_source(url, song = None):
   
   else:
     song.update(title = data['title'], uploader = data['uploader'], thumbnail = data['thumbnail'])
-    return True, FFmpegOpusAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), song
+    return True, PCMVolumeTransformer(FFmpegPCMAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), volume = 2.0), song
   

@@ -282,8 +282,8 @@ async def _play(ctx, *, text):
     await ctx.send(embed = embed)
     return
   
-  songs = None
-  infos = None
+  songs = []
+  infos = {}
   async with ctx.typing():
     if ('youtu.be' in text) or ('youtube.com' in text):
       if 'playlist?' in text:
@@ -337,7 +337,15 @@ async def _play(ctx, *, text):
           return
         songs = [songs]
           
-  
+  if len(songs) == 0:
+    embed = Embed(
+      title = 'No songs found with this url.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Error')
+    await ctx.send(embed = embed)
+    return
+
   if len(songs) == 1:
     embed = Embed(
       title = f'🎵 {songs[0].fixed_title(1000)}',
@@ -390,7 +398,7 @@ async def _skip(ctx):
   await ctx.message.add_reaction('⏭️')
     
 
-@bot.command(name = 'current', aliases = ['c', 'now', 'info'])
+@bot.command(name = 'current', aliases = ['c', 'now', 'info', 'i'])
 async def _current(ctx):
   def create_embed(p):
     if len(p.songs) <= 0:
@@ -575,8 +583,7 @@ async def _queue(ctx):
     duration = 0
     for song in p.songs:
       duration += song.duration
-    s = Song('', '', duration, '')
-    text = f'#️⃣ {len(p.songs)} songs in 🕒 {s.fixed_duration()}'
+    text = f'#️⃣ {len(p.songs)} songs in 🕒 {Song(duration = duration).fixed_duration()}'
     loop = '↩️ Off'
     if p.loop == 1:
       loop = '🔂 Single'
@@ -925,7 +932,6 @@ async def _load(ctx, *, pref = None):
     for song_dic in prefs[key][pref]:
       songs.append(Song.from_dict(song_dic))
     
-
   embed = Embed(
     title = f'🎵 {len(songs)} songs from 📄 {pref} 👤 {ctx.author.display_name}',
     color = random_color()
