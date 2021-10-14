@@ -567,7 +567,7 @@ async def _queue(ctx):
       index = (current_page-1) * 10 + i
       if index < len(p.songs):
         song = p.songs[index]
-        embed.add_field(name = f'{"▶️ " if index == p.current else "#️⃣ "} {index+1} 🎵 {song.fixed_title()}', value = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader()}'
+        embed.add_field(name = f'{"▶️ " if index == p.current else "#️⃣ "} {index+1} 🎵 {song.fixed_title()}', value = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader()}', inline = False)
     duration = 0
     for song in p.songs:
       duration += song.duration
