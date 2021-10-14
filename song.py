@@ -43,7 +43,7 @@ class Song:
     else:
       return f'{m:02d}:{s:02d}'
   
-  def fixed_title(self, limit = 40):
+  def fixed_title(self, limit = 80):
     t = self.title
     t = ' '.join(t.split(' '))
     if t[0] == ' ':
@@ -57,7 +57,7 @@ class Song:
       t = t[:limit] + '...'
     return t
    
-  def fixed_uploader(self, limit = 20):
+  def fixed_uploader(self, limit = 32):
     t = self.uploader
     t = ' '.join(t.split(' '))
     if t[0] == ' ':
