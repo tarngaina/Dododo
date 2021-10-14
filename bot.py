@@ -104,7 +104,7 @@ async def _help(ctx):
       embed.add_field(name = '#️⃣ search/s/find/f <query>', value = '🔎 Search a song with query. (YouTube only)', inline = False)
     elif page == 2:  
       embed.add_field(name = '#️⃣ queue/q/playlist/list/all', value = '📄 Show queue.', inline = False)
-      embed.add_field(name = '#️⃣ current/c', value = 'ℹ️ Show current playing song infos.', inline = False) 
+      embed.add_field(name = '#️⃣ current/c/info/i/now', value = 'ℹ️ Show current playing song infos.', inline = False) 
       embed.add_field(name = '#️⃣ previous/prev/back/bacc', value = '⏮️ Play previous song.', inline = False)
       embed.add_field(name = '#️⃣ next/skip', value = '⏭️ Play next song.', inline = False)
       embed.add_field(name = '#️⃣ jump/move <index>', value = '⤵️ Jump to specific song in queue by its index.', inline = False)
@@ -415,7 +415,7 @@ async def _current(ctx):
       url = song.url,
       color = random_color()
     )
-    embed.add_field(name = f'📅 {song.fixed_upload_date} 📊 {song.fixed_view_count} 👍 {song.fixed_like_count}', value = f'{song.fixed_description()}', inline = False)
+    embed.add_field(name = f'📅 {song.fixed_upload_date()} 📊 {song.fixed_view_count()} 👍 {song.fixed_like_count()}', value = f'{song.fixed_description()}', inline = False)
     if song.thumbnail:
       embed.set_thumbnail(url = song.thumbnail)
     embed.set_author(name = '▶️ Now playing')
