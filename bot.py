@@ -415,6 +415,7 @@ async def _current(ctx):
       url = song.url,
       color = random_color()
     )
+    embed.add_field(name = f'📅 {song.fixed_upload_date} 📊 {song.fixed_view_count} 👍 {song.fixed_like_count}', value = f'{song.fixed_description()}', inline = False)
     if song.thumbnail:
       embed.set_thumbnail(url = song.thumbnail)
     embed.set_author(name = '▶️ Now playing')
