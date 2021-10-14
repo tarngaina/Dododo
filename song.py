@@ -1,10 +1,21 @@
 class Song:
-  def __init__(self, title, uploader, duration, url, thumbnail = None):
-    self.title = title
-    self.uploader = uploader
-    self.duration = duration
-    self.url = url
-    self.thumbnail = thumbnail
+  def __init__(self, **dic):
+    if 'title' in dic:
+      self.title = dic['title']
+    if 'uploader' in dic:
+      self.uploader = dic['uploader']
+    if 'duration' in dic:
+      self.duration = dic['duration']
+    if 'url' in dic:
+      self.url = dic['url']
+    if 'thumbnail' in dic:
+      self.thumbnail = dic['thumbnail']
+    if 'upload_date' in dic:
+      self.upload_date = dic['upload_date']
+    if 'view_count' in dic:
+      self.view_count = dic['view_count']
+    if 'like_count' in dic:
+      self.like_count = dic['like_count']
 
   @classmethod
   def from_dict(cls, dic):
@@ -34,6 +45,12 @@ class Song:
       self.url = dic['url']
     if 'thumbnail' in dic:
       self.thumbnail = dic['thumbnail']
+    if 'upload_date' in dic:
+      self.upload_date = dic['upload_date']
+    if 'view_count' in dic:
+      self.view_count = dic['view_count']
+    if 'like_count' in dic:
+      self.like_count = dic['like_count']
 
   def fixed_duration(self):
     m, s = divmod(self.duration, 60)
