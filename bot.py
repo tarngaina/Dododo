@@ -107,7 +107,7 @@ async def _help(ctx):
       embed.add_field(name = '#️⃣current/c', value = 'Show current song info.', inline = False) 
       embed.add_field(name = '#️⃣previous/prev/back/bacc', value = 'Play previous song.', inline = False)
       embed.add_field(name = '#️⃣next/skip', value = 'Play next song.', inline = False)
-      embed.add_field(name = '#️⃣jump/move [index]', value = 'Jump to specific song in queue by its index.', inline = False)
+      embed.add_field(name = '#️⃣jump/move <index>', value = 'Jump to specific song in queue by its index.', inline = False)
       embed.add_field(name = '#️⃣remove/delete/del <index>', value = 'Remove specific song in queue by its index.', inline = False)
       embed.add_field(name = '#️⃣clear/clean/reset', value = 'Clear all songs in queue.', inline = False)
     elif page == 3:  
@@ -566,27 +566,20 @@ async def _queue(ctx):
     for i in range(0, 10):
       index = (current_page-1) * 10 + i
       if index < len(p.songs):
-        field = f'{index+1} {p.songs[index].to_str()}'
-        field = '▶️ ' + field if index == p.current else '#️⃣ ' + field
-        value += field + '\n'
-    name = 'Loop ↩️ Off'
+        song = p.songs[index]
+        embed.add_field(name = f'{"▶️ " if index == p.current else "#️⃣ "} {index+1} 🎵 {song.fixed_title()}', value = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader()}'
+    duration = 0
+    for song in p.songs:
+      duration += song.duration
+    s = Song('', '', duration, '')
+    text = f'#️⃣ {len(p.songs)} 🕒 {s.fixed_duration()}'
+    loop = '↩️ Off'
     if p.loop == 1:
-      name = 'Loop 🔂 Single'
+      loop = '🔂 Single'
     if p.loop == 2:
-      name = 'Loop 🔁 All'
-    embed.add_field(name = name, value = value, inline = True)
-    if len(p.songs) > 0:
-      duration = 0
-      for song in p.songs:
-        duration += song.duration
-      s = Song('', '', duration, '')
-      fixed_duration = s.fixed_duration().split(':')
-      fixed_duration[-1] += ' seconds'
-      fixed_duration[-2] += ' minutes'
-      if len(fixed_duration) > 2:
-        fixed_duration[-3] += ' hours'
-      fixed_duration = ' '.join(fixed_duration)
-      embed.set_footer(text = f'Total #️⃣ {len(p.songs)} songs in 🕒 {fixed_duration}')
+      loop = '🔁 All'
+    text += ' ' + loop            
+    embed.set_footer(text = text)
     return embed
 
   p = get_player(ctx.author.guild.id)
