@@ -105,7 +105,8 @@ async def _help(ctx):
     elif page == 2:  
       embed.add_field(name = '#️⃣queue/q/playlist/list/all', value = 'Show queue.', inline = False)
       embed.add_field(name = '#️⃣current/c', value = 'Show current song info.', inline = False) 
-      embed.add_field(name = '#️⃣skip/next', value = 'Skip current song.', inline = False)
+      embed.add_field(name = '#️⃣previous/prev/back/bacc', value = 'Play previous song.', inline = False)
+      embed.add_field(name = '#️⃣next/skip', value = 'Play next song.', inline = False)
       embed.add_field(name = '#️⃣jump/move [index]', value = 'Jump to specific song in queue by its index.', inline = False)
       embed.add_field(name = '#️⃣remove/delete/del <index>', value = 'Remove specific song in queue by its index.', inline = False)
       embed.add_field(name = '#️⃣clear/clean/reset', value = 'Clear all songs in queue.', inline = False)
