@@ -66,6 +66,9 @@ class Song:
     t = self.description
     t = '\n'.join([s for s in t.split('\n') if s != ''])
     t = ' '.join([s for s in t.split(' ') if s != ''])
+    cs = ['|', '`', '*', '_', '>']
+    for c in cs:
+      t = t.replace(c, '')
     if len(t) > limit:
       t = t[:limit] + '...'
     return t
@@ -88,7 +91,7 @@ class Song:
   
   def fixed_upload_date(self):
     t = self.upload_date
-    return f'{t[:4]}/{t[4:6]}/{t[-2:]}'
+    return f'{t[-2:]}/{t[4:6]}/{t[:4]}'
 
   def to_str(self, limit = True):
     if limit:
