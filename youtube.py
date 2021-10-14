@@ -130,5 +130,5 @@ async def get_source(url, song = None):
   
   else:
     song.update(title = data['title'], uploader = data['uploader'], thumbnail = data['thumbnail'])
-    return True, PCMVolumeTransformer(FFmpegPCMAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), volume = 2.0), song
+    return True, PCMVolumeTransformer(FFmpegPCMAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), volume = 1.75), song
   
