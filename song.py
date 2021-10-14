@@ -44,11 +44,7 @@ class Song:
   
   def fixed_title(self, limit = 60):
     t = self.title
-    t = ' '.join(t.split(' '))
-    if t[0] == ' ':
-      t = t[1:]
-    if t[-1] == ' ':
-      t = t[:-1]
+    t = ' '.join([s for s in t.split(' ') if s != ''])
     cs = ['|', '`', '*', '_', '>']
     for c in cs:
       t = t.replace(c, '')
@@ -58,11 +54,7 @@ class Song:
    
   def fixed_uploader(self, limit = 32):
     t = self.uploader
-    t = ' '.join(t.split(' '))
-    if t[0] == ' ':
-      t = t[1:]
-    if t[-1] == ' ':
-      t = t[:-1]
+    t = ' '.join([s for s in t.split(' ') if s != ''])
     cs = ['|', '`', '*', '_', '>']
     for c in cs:
       t = t.replace(c, '')
@@ -70,6 +62,34 @@ class Song:
       t = t[:limit] + '...'
     return t
   
+  def fixed_description(self, limit = 400):
+    t = self.description
+    t = '\n'.join([s for s in t.split('\n') if s != ''])
+    t = ' '.join([s for s in t.split(' ') if s != ''])
+    if len(t) > limit:
+      t = t[:limit] + '...'
+    return t
+  
+  def fixed_view_count(self):
+    t = float('{:.3g}'.format(self.view_count))
+    magnitude = 0
+    while abs(t) >= 1000:
+      magnitude += 1
+      t /= 1000.0
+    return f'{f"{t:f}".rstrip("0").rstrip(".")}{["", "K", "M", "B", "T"][magnitude]}'
+  
+  def fixed_like_count(self):
+    t = float('{:.3g}'.format(self.like_count))
+    magnitude = 0
+    while abs(t) >= 1000:
+      magnitude += 1
+      t /= 1000.0
+    return f'{f"{t:f}".rstrip("0").rstrip(".")}{["", "K", "M", "B", "T"][magnitude]}'
+  
+  def fixed_upload_date(self):
+    t = self.upload_date
+    return f'{t[:4]}/{t[4:6]}/{t[-2:]}'
+
   def to_str(self, limit = True):
     if limit:
       return f'🕒 {self.fixed_duration()} 🎵 {self.fixed_title()} 👤 {self.fixed_uploader()}';
