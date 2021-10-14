@@ -91,7 +91,7 @@ class Player:
       if self.text_channel:
         msg = audio_source
         embed = Embed(
-          title = song.to_str(False),
+          title = f'🎵 {song.fixed_title(1000)}',
           description = msg,
           url = self.songs[self.current].url,
           color = random_color()
@@ -106,7 +106,8 @@ class Player:
     
     if self.text_channel:
       embed = Embed(
-        title = song.to_str(False),
+        title = f'🎵 {song.fixed_title(1000)}',
+        description = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(1000)}',
         url = song.url,
         color = random_color()
       )
@@ -124,10 +125,11 @@ class Player:
   def after_play(self, error=None):
     if error:
       if self.text_channel:
+        song = self.songs[self.current]
         embed = Embed(
-          title = self.songs[self.current].to_str(False),
+          title = f'🎵 {song.fixed_title(1000)}',
           description = str(error),
-          url = self.songs[self.current].url,
+          url = song.url,
           color = random_color()
         )
         embed.set_author(name = '❗ Error')
