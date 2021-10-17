@@ -42,9 +42,9 @@ async def restart():
 async def update():
   global count
   count += 1
-  if count > 30000:
+  if count > 32000:
     global get_players
-    if len(get_players()) == 0:
+    if get_players and (len(get_players()) == 0):
       await restart()
       
 
