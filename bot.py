@@ -866,7 +866,6 @@ async def _load(ctx, *, pref = None):
   if is_restarting():
     embed = Embed(
       title = 'This bot is restarting to update its component, please try again in 2 minutes.',
-      description = 'Why is this happening?: YouTube updates itself everyday, so does this bot.',
       color = random_color()
     )
     embed.set_author(name = '❗ Error')
