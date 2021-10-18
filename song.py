@@ -11,7 +11,12 @@ class Song:
       'title': self.title,
       'uploader': self.uploader,
       'duration': self.duration,
-      'url': self.url
+      'url': self.url,
+      'thumbnail': None,
+      'description': None,
+      'like_count': None,
+      'view_count': None,
+      'upload_date': None
     }
 
   def update(self, **dic):
