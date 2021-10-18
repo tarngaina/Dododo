@@ -1,5 +1,14 @@
 class Song:
   def __init__(self, **dic):
+    self.title = None
+    self.uploader = None
+    self.duration = None
+    self.url = None
+    self.thumbnail = None
+    self.upload_date = None
+    self.view_count = None
+    self.like_count = None
+    self.description = None
     self.update(**dic)
 
   @classmethod
@@ -11,12 +20,7 @@ class Song:
       'title': self.title,
       'uploader': self.uploader,
       'duration': self.duration,
-      'url': self.url,
-      'thumbnail': None,
-      'description': None,
-      'like_count': None,
-      'view_count': None,
-      'upload_date': None
+      'url': self.url
     }
 
   def update(self, **dic):
