@@ -717,8 +717,7 @@ async def _remove(ctx, param = None):
     await ctx.send(embed = embed)
     return
   
-  song = p.songs[i]
-  p.songs.remove(p.songs[i])
+  song = p.songs.pop(i)
   if i <= p.current:
     if i == p.current:
       if p.voice_client.is_playing():
