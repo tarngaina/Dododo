@@ -723,11 +723,6 @@ async def _remove(ctx, param = None):
       if p.voice_client.is_playing():
         p.voice_client.stop()
     p.current -= 1
-  print(song.fixed_title(1000))
-  print(song.fixed_duration())
-  print(song.fixed_uploader(1000))
-  print(song.url)
-  print(song.thumbnail)
   embed = Embed(
     title = f'🎵 {song.fixed_title(1000)}',
     description = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(1000)}',
