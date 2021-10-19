@@ -9,7 +9,7 @@ from util import now_str
 
 RESOURCE_CHANNEL_ID = 889792058565488660
 resource_channel = None
-RESOURCE_FILES = ['prefs.json']
+RESOURCE_FILES = ['prefs.json', 'temps.json']
 resource_messages = {}
 
 

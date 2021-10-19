@@ -3,10 +3,13 @@ from asyncio import sleep, get_event_loop
 from discord import Embed
 from discord.ext import tasks
 
+from song import Song
 from youtube import get_source
 from util import random_color
+from resource import save, load
 
 players = []
+count = -10
 
 def add_player(voice_client):
   players.append(Player(voice_client))
@@ -52,26 +55,54 @@ async def on_update(p):
     p.task_block = True
     await p.play()
     p.task_block = False
+    
 
 @tasks.loop(seconds = 1)
 async def update():
+  global count
+  count += 1
   for p in players:
     get_event_loop().create_task(on_update(p))
+  if count > 30:
+    dic = {}
+    for p in players:
+      dic[str(p.voice_client.channel.id)] = p.to_dict()
+    await save('temps.json', dic)
+    count = 0
 
-async def prepare():
+async def prepare(bot):
+  res, dic = await load('temps.json')
+  await bot.wait_until_ready()
+  if res:
+    for guild in bot.guilds:
+      for voice_channel in guild.voice_channels:
+        if str(voice_channel.id) in dic.keys():
+          await voice_channel.connect()
+          
+    for voice_client in bot.voice_clients:
+      add_player(voice_client)
+    for p in get_players():
+      player_dict = dic[str(p.voice_client.channel.id)]
+      p.update(
+        loop = player_dict['loop'],
+        songs = player_dict['songs'],
+        current = player_dict['current']
+      )
+      p.text_channel = bot.get_channel(int(player_dict['text_channel_id']))
+      p.update(member = len(p.voice_client.channel.members))
   update.start()
 
 
 class Player:
   def __init__(self, voice_client):
     self.voice_client = voice_client
-   
     self.text_channel = None
+
     self.loop = 0 
     self.songs = []
     self.current = 0
+
     self.is_playing = False
-      
     self.idle = 0
     self.idle2 = 0
     self.member = 0
@@ -80,6 +111,29 @@ class Player:
     self.max_page = 0
     self.error_block = 0
 
+
+  def update(self, **dic):
+    if 'loop' in dic:
+      self.loop = int(dic['loop'])
+    if 'current' in dic:
+      self.current = int(dic['current'])
+    if 'songs' in dic:
+      for song_dict in dic['songs']:
+        self.songs.append(Song.from_dict(song_dict))
+    if 'member' in dic:
+      self.member = int(dic['member'])
+    
+  
+  def to_dict(self):
+    dic = {}
+    if self.text_channel:
+      dic['text_channel_id'] = str(self.text_channel.id)
+    dic['loop'] = str(self.loop)
+    dic['current'] = str(self.current)
+    dic['songs'] = []
+    for song in self.songs:
+      dic['songs'].append(song.to_dict())
+    return dic
 
   async def play(self):
     if self.error_block > 0:

@@ -61,18 +61,9 @@ async def on_ready():
       name = "Watame Lullaby"
     )
   )
-  for guild in bot.guilds:
-    for voice_channel in guild.voice_channels:
-      for member in voice_channel.members:
-        if member.id == bot.user.id:
-          await voice_channel.connect()
-  for voice_client in bot.voice_clients:
-    add_player(voice_client)
-  for p in get_players():
-    p.member = len(p.voice_client.channel.members)
   await resource_prepare(bot)
   await maintenance_prepare(bot, get_players)
-  await player_prepare()
+  await player_prepare(bot)
 
 
 @bot.command(name = 'restart')

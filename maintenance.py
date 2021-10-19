@@ -1,5 +1,5 @@
 from os import getenv
-from asyncio import get_event_loop
+from asyncio import get_event_loop, sleep
 from traceback import format_exc as exc
 from socket import gethostbyname, gethostname
 
@@ -25,6 +25,7 @@ async def restart():
   global restarting
   if not restarting:
     restarting = True
+    await sleep(40)
     await log('Restarting bot.')
    
     try:
