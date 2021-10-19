@@ -22,7 +22,7 @@ def search(text, limit = 24):
   
   else:
     if (not ids) or (len(ids) == 0):
-      return False, f'No song found with: {text}.'
+      return False, f'Không tìm thấy bài hát với từ khóa: {text}.'
 
     urls = []
     for id in ids:
@@ -65,9 +65,8 @@ async def get_info(url):
     if ('duration' in entry) and (entry['duration']):
       song = Song(**entry)
       song.update(url = r'https://youtu.be/' + entry['id'])
-      print(song.url)
       return True, song
-    return False, 'Song not found.'
+    return False, f'Không tìm thấy bài hát với link {url}.'
 
 
 async def get_info_playlist(url):
