@@ -153,8 +153,8 @@ class Player:
           url = self.songs[self.current].url,
           color = random_color()
         )
-        embed.set_author(name = '❗ Error')
-        embed.set_footer(text = 'Atuo skip to next song in 3 seconds.')
+        embed.set_author(name = '❗ Lỗi')
+        embed.set_footer(text = 'Tự động phát bài tiếp theo trong 3 giây.')
         await self.text_channel.send(embed = embed, delete_after = 20)
       self.error_block = 3
       self.next()
@@ -170,7 +170,7 @@ class Player:
       )
       if song.thumbnail:
         embed.set_thumbnail(url = song.thumbnail)
-      embed.set_author(name = '▶️ Now playing')
+      embed.set_author(name = '▶️ Đang phát')
       embed.set_footer(text = f'#️⃣ {self.current+1}/{len(self.songs)}')
       await self.text_channel.send(embed = embed, delete_after = float(song.duration + 3))
     self.is_playing = True
@@ -189,8 +189,8 @@ class Player:
           url = song.url,
           color = random_color()
         )
-        embed.set_author(name = '❗ Error')
-        embed.set_footer(text = 'Gonna skip to next song in 3 seconds.')
+        embed.set_author(name = '❗ Lỗi')
+        embed.set_footer(text = 'Tự động phát bài tiếp theo trong 3 giây.')
         get_event_loop().create_task(self.text_channel.send(embed = embed))
       self.error_block = 3
       
