@@ -64,6 +64,9 @@ async def update():
   for p in players:
     get_event_loop().create_task(on_update(p))
   if count > 30:
+    check_dic = await load('temps.json')
+    if (len(check_dic) == 0) and (len(players) == 0):
+      return
     dic = {}
     for p in players:
       dic[str(p.voice_client.channel.id)] = p.to_dict()
