@@ -81,7 +81,7 @@ async def _restart(ctx):
 
 
 help_page = 1
-@bot.command(name = 'help', aliases = ['h'])
+@bot.command(name = 'help', aliases = ['h', 'giúp'])
 async def _help(ctx):
   def create_embed(page):
     embed = Embed(
@@ -155,7 +155,7 @@ async def _help(ctx):
     await message.edit(components=[])
 
 
-@bot.command(name = 'join', aliases = ['j'])
+@bot.command(name = 'join', aliases = ['j', 'vào'])
 async def _join(ctx):
   if not ctx.author.voice:
     embed = Embed(
@@ -170,7 +170,7 @@ async def _join(ctx):
   await ctx.message.add_reaction('✅')
   
   
-@bot.command(name = 'leave', aliases = ['l'])
+@bot.command(name = 'leave', aliases = ['l', 'thoát'])
 async def _leave(ctx):
   for voice_client in bot.voice_clients:
     if voice_client.guild.id == ctx.author.guild.id:
@@ -178,7 +178,7 @@ async def _leave(ctx):
       await ctx.message.add_reaction('❎')
 
       
-@bot.command(name = 'search', aliases = ['s', 'find', 'f'])
+@bot.command(name = 'search', aliases = ['s', 'find', 'f', 'tìm'])
 async def _search(ctx, *, query):  
   if (query == None) or (query == ''):
     embed = Embed(
@@ -231,7 +231,7 @@ async def _search(ctx, *, query):
     return
 
   
-@bot.command(name = 'play', aliases = ['p', 'enqueue'])
+@bot.command(name = 'play', aliases = ['p', 'enqueue', 'phát'])
 async def _play(ctx, *, text):
   if is_restarting():
     embed = Embed(
@@ -363,7 +363,7 @@ async def _play(ctx, *, text):
   p.songs += songs
 
 
-@bot.command(name = 'back', aliases = ['prev', 'previous', 'bacc'])
+@bot.command(name = 'back', aliases = ['prev', 'previous', 'bacc', 'lùi', 'lui'])
 async def _back(ctx):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -378,7 +378,7 @@ async def _back(ctx):
   await ctx.message.add_reaction('⏮')
 
   
-@bot.command(name = 'skip', aliases = ['next'])
+@bot.command(name = 'skip', aliases = ['next', 'tiếp', 'tới'])
 async def _skip(ctx):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -389,7 +389,7 @@ async def _skip(ctx):
   await ctx.message.add_reaction('⏭️')
     
 
-@bot.command(name = 'current', aliases = ['c', 'now', 'info', 'i'])
+@bot.command(name = 'current', aliases = ['c', 'now', 'info', 'i', 'đang'])
 async def _current(ctx):
   def create_embed(p):
     if len(p.songs) <= 0:
@@ -505,7 +505,7 @@ async def _current(ctx):
     await message.edit(components=[])
 
 
-@bot.command(name = 'jump', aliases = ['move'])
+@bot.command(name = 'jump', aliases = ['move', 'nhảy', 'đến'])
 async def _jump(ctx, param = None):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -653,7 +653,7 @@ async def _queue(ctx):
     await message.edit(components=[])
 
 
-@bot.command(name = 'clear', aliases = ['clean', 'reset'])
+@bot.command(name = 'clear', aliases = ['clean', 'reset', 'dẹp'])
 async def _clear(ctx):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -667,7 +667,7 @@ async def _clear(ctx):
   await ctx.message.add_reaction('🧹')
   
 
-@bot.command(name = 'remove', aliases = ['delete', 'del'])
+@bot.command(name = 'remove', aliases = ['delete', 'del', 'xóa'])
 async def _remove(ctx, param = None):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -726,7 +726,7 @@ async def _remove(ctx, param = None):
   await ctx.send(embed = embed)
   
   
-@bot.command(name = 'pause', aliases = ['stop'])
+@bot.command(name = 'pause', aliases = ['stop', 'dừng'])
 async def _pause(ctx):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -736,7 +736,7 @@ async def _pause(ctx):
     await ctx.message.add_reaction('⏸️')
 
     
-@bot.command(name = 'resume', aliases = ['continue'])
+@bot.command(name = 'resume', aliases = ['continue'. 'tiếp tục'])
 async def _resume(ctx):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -746,8 +746,8 @@ async def _resume(ctx):
     await ctx.message.add_reaction('▶️')
 
     
-@bot.command(name = 'loop', aliases = ['repeat', 'r'])
-async def _loop(ctx, param = None):
+@bot.command(name = 'loop', aliases = ['repeat', 'r', 'lặp'])
+async def _loop(ctx, *, param = None):
   p = get_player(ctx.author.guild.id)
   if not p:
     return
@@ -760,6 +760,7 @@ async def _loop(ctx, param = None):
     else:
       p.loop = 0
   else:
+    param = param.lower()
     if param in ['0', 'off', 'tắt']:
       p.loop = 0
     elif param in ['1', 'single', 'one', 'một']:
@@ -783,7 +784,7 @@ async def _loop(ctx, param = None):
   await ctx.message.add_reaction(rc)
   
   
-@bot.command(name = 'shuffle')
+@bot.command(name = 'shuffle', aliases = ['trộn'])
 async def _shuffle(ctx):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -804,7 +805,7 @@ async def _shuffle(ctx):
     p.current = 0
   await ctx.message.add_reaction('🔀')
     
-@bot.command(name = 'save')
+@bot.command(name = 'save', aliases = ['lưu'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _save(ctx, *, pref = None):
   p = get_player(ctx.author.guild.id)
@@ -849,7 +850,7 @@ async def _save(ctx, *, pref = None):
   await resource_save('prefs.json', prefs)
   await ctx.message.add_reaction('📄')
   
-@bot.command(name = 'load')
+@bot.command(name = 'load', aliases = ['tải'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _load(ctx, *, pref = None):
   if is_restarting():
@@ -931,7 +932,7 @@ async def _load(ctx, *, pref = None):
   p.songs += songs
   
   
-@bot.command(name = 'forget')
+@bot.command(name = 'forget', aliases = ['quên'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _forget(ctx, *, pref = None):
   res, prefs = await resource_load('prefs.json')
