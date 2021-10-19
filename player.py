@@ -57,15 +57,6 @@ async def on_update(p):
     p.task_block = False
 
 
-def ordered(obj):
-    if isinstance(obj, dict):
-        return sorted((k, ordered(v)) for k, v in obj.items())
-    if isinstance(obj, list):
-        return sorted(ordered(x) for x in obj)
-    else:
-        return obj
-    
-
 @tasks.loop(seconds = 1)
 async def update():
   global count
@@ -73,13 +64,13 @@ async def update():
   for p in players:
     get_event_loop().create_task(on_update(p))
   if count > 30:
-    old_dic = await load('temps.json')
-    print(old_dic)
+    res, old_dic = await load('temps.json')
     dic = {}
     for p in players:
       dic[str(p.voice_client.channel.id)] = p.to_dict()
-    if ordered(old_dic) == ordered(dic):
-      return
+    if res:
+      if old_dic == dic:
+        return
     await save('temps.json', dic)
     count = 0
 
