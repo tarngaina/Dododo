@@ -13,7 +13,7 @@ from util import to_int, random_color
 from resource import prepare as resource_prepare, load as resource_load, save as resource_save
 from maintenance import prepare as maintenance_prepare, restart, is_restarting
 
-bot = commands.Bot(command_prefix = ['#', '$', '-'], intents = Intents.all())
+bot = commands.Bot(command_prefix = ['#', '$', '-'], case_insensitive = True, intents = Intents.all())
 bot.remove_command('help')
 InteractionClient(bot)
 OWNER_ID = int(getenv('owner_id'))
@@ -378,7 +378,7 @@ async def _back(ctx):
   await ctx.message.add_reaction('⏮')
 
   
-@bot.command(name = 'skip', aliases = ['next', 'tiếp', 'tới'])
+@bot.command(name = 'skip', aliases = ['next', 'tới'])
 async def _skip(ctx):
   p = get_player(ctx.author.guild.id)
   if not p:
@@ -736,7 +736,7 @@ async def _pause(ctx):
     await ctx.message.add_reaction('⏸️')
 
     
-@bot.command(name = 'resume', aliases = ['continue'. 'tiếp tục'])
+@bot.command(name = 'resume', aliases = ['continue', 'tiếp'])
 async def _resume(ctx):
   p = get_player(ctx.author.guild.id)
   if not p:
