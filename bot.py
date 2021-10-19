@@ -23,17 +23,17 @@ OWNER_ID = int(getenv('owner_id'))
 async def on_command_error(ctx, error):
   if isinstance(error, commands.CommandNotFound):
     embed = Embed(
-      title = 'Command not found, use help command to see list of commands.',
+      title = 'Không tìm thấy lệnh.',
       color = random_color()
     )
-    embed.set_author(name = '❗ Error')
+    embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
   if isinstance(error, commands.CommandOnCooldown):
     embed = Embed(
-      title = f'This command is on cooldown to ensure safety of bot.\nPlese try again in {error.retry_after:.2f}s.',
+      title = f'Thử lại sau {error.retry_after:.2f} giây.',
       color = random_color()
     )
-    embed.set_author(name = '❗ Error')
+    embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
   
   
@@ -73,10 +73,10 @@ async def _restart(ctx):
     await ctx.message.add_reaction('✅')
   else:
     embed = Embed(
-      title = 'Sorry you do not own this bot.\nOnly owner can run this command.',
+      title = 'Ôi bạn ơi, bạn chưa đủ sức mạnh để làm chủ cái này.',
       color = random_color()
     )
-    embed.set_author(name = '❗ Error')
+    embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
 
 
@@ -89,27 +89,27 @@ async def _help(ctx):
       color = random_color()
     )
     if page == 1:
-      embed.add_field(name = '#️⃣ join/j', value = '✅ Join author\'s voice channel.', inline = False)
-      embed.add_field(name = '#️⃣ leave/l', value = '❎ Leave voice channel.', inline = False)
-      embed.add_field(name = '#️⃣ play/p/enqueue <url/query>', value = '⏏️ Enqueued a song from url or query. (YouTube only)', inline = False)
-      embed.add_field(name = '#️⃣ search/s/find/f <query>', value = '🔎 Search a song with query. (YouTube only)', inline = False)
+      embed.add_field(name = '#️⃣ join/j', value = '✅ Vào voice.', inline = False)
+      embed.add_field(name = '#️⃣ leave/l', value = '❎ Thoát voice.', inline = False)
+      embed.add_field(name = '#️⃣ play/p/enqueue <link/từ khoá>', value = '⏏️ Phát bài hát từ link hoặc từ khoá.', inline = False)
+      embed.add_field(name = '#️⃣ search/s/find/f <từ khoá>', value = '🔎 Tìm bài hát, chọn để phát nhạc.', inline = False)
     elif page == 2:  
-      embed.add_field(name = '#️⃣ queue/q/playlist/list/all', value = '📄 Show queue.', inline = False)
-      embed.add_field(name = '#️⃣ current/c/info/i/now', value = 'ℹ️ Show current playing song infos.', inline = False) 
-      embed.add_field(name = '#️⃣ previous/prev/back/bacc', value = '⏮️ Play previous song.', inline = False)
-      embed.add_field(name = '#️⃣ next/skip', value = '⏭️ Play next song.', inline = False)
-      embed.add_field(name = '#️⃣ jump/move <index>', value = '⤵️ Jump to specific song in queue by its index.', inline = False)
-      embed.add_field(name = '#️⃣ remove/delete/del <index>', value = '🧹 Remove specific song in queue by its index.', inline = False)
-      embed.add_field(name = '#️⃣ clear/clean/reset', value = '🧹 Clear all songs in queue.', inline = False)
+      embed.add_field(name = '#️⃣ queue/q/playlist/list/all', value = '📄 Xem danh mục phát..', inline = False)
+      embed.add_field(name = '#️⃣ current/c/info/i/now', value = 'ℹ️ Xem bài đang phát.', inline = False) 
+      embed.add_field(name = '#️⃣ previous/prev/back/bacc', value = '⏮️ Phát bài trước đó.', inline = False)
+      embed.add_field(name = '#️⃣ next/skip', value = '⏭️ Phát bài tiếp theo.', inline = False)
+      embed.add_field(name = '#️⃣ jump/move <vị trí>', value = '⤵️ Nhảy tới bài được chọn và phát.', inline = False)
+      embed.add_field(name = '#️⃣ remove/delete/del <vị trí>', value = '🧹 Xóa bài được chọn.', inline = False)
+      embed.add_field(name = '#️⃣ clear/clean/reset', value = '🧹 Dừng và xóa tất cả bài hát.', inline = False)
     elif page == 3:  
-      embed.add_field(name = '#️⃣ pause/stop', value = '⏸️ Pause current song if playing.', inline = False)
-      embed.add_field(name = '#️⃣ resume/continue', value = '▶️ Resume current song if paused.', inline = False)
-      embed.add_field(name = '#️⃣ shuffle', value = '🔀 Shuffle and play queue again.', inline = False)
-      embed.add_field(name = '#️⃣ loop/repeat/r [mode]', value = '🔁 Change loop/repeat mode: off/single/all', inline = False)
+      embed.add_field(name = '#️⃣ pause/stop', value = '⏸️ Tạm dừng phát nhạc..', inline = False)
+      embed.add_field(name = '#️⃣ resume/continue', value = '▶️ Tiếp tục phát nhạc.', inline = False)
+      embed.add_field(name = '#️⃣ shuffle', value = '🔀 Trộn danh mục phát và phát lại từ đầu.', inline = False)
+      embed.add_field(name = '#️⃣ loop/repeat/r [chế độ]', value = '🔁 Chế độ lặp lại: off/single/all', inline = False)
     else:
-      embed.add_field(name = '#️⃣ save <pref>', value = '📄 Save queue to a pref.', inline = False)
-      embed.add_field(name = '#️⃣ load <pref>', value = '📄 Load and add all songs from a pref to queue.', inline = False)
-      embed.add_field(name = '#️⃣ forget <pref>', value = '📄 Forget a pref that saved.', inline = False)
+      embed.add_field(name = '#️⃣ save <tên>', value = '📄 Lưu danh mục phát.', inline = False)
+      embed.add_field(name = '#️⃣ load <tên>', value = '📄 Tải danh mục phát đã lưu.', inline = False)
+      embed.add_field(name = '#️⃣ forget <tên>', value = '📄 Xoá danh mục phát đã lưu.', inline = False)
     return embed
   
   global help_page
@@ -134,7 +134,7 @@ async def _help(ctx):
 
   @on_click.matching_id("left_button")
   async def on_left_button(inter):
-    await inter.reply('Please wait...', delete_after = 0)
+    await inter.reply('Đợi xíu...', delete_after = 0)
     global help_page
     help_page -= 1
     if help_page < 1:
@@ -143,7 +143,7 @@ async def _help(ctx):
     
   @on_click.matching_id("right_button")
   async def on_right_button(inter):
-    await inter.reply('Please wait...', delete_after = 0)
+    await inter.reply('Đợi xíu...', delete_after = 0)
     global help_page
     help_page += 1
     if help_page > 4:
@@ -159,10 +159,10 @@ async def _help(ctx):
 async def _join(ctx):
   if not ctx.author.voice:
     embed = Embed(
-      title = 'You are not connected to a voice channel.',
+      title = 'Chưa vô voice bạn ơi.',
       color = random_color()
     )
-    embed.set_author(name = '❗ Error')
+    embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed)
     return
   
@@ -182,10 +182,10 @@ async def _leave(ctx):
 async def _search(ctx, *, query):  
   if (query == None) or (query == ''):
     embed = Embed(
-      title = 'You need to enter a query to search it.',
+      title = 'Nhập từ khoá đi bạn.',
       color = random_color()
     )
-    embed.set_author(name = '❗ Error')
+    embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
     return
 
@@ -210,14 +210,14 @@ async def _search(ctx, *, query):
   
   components = [
     SelectMenu(
-      custom_id = "search",
-      placeholder = "Choose a song here to play",
+      custom_id = 'search',
+      placeholder = 'Bấm đây để chọn bài hát',
       max_values = len(options),
       options = options
     )
   ]
   embed = Embed(
-    title = f'Found {len(options)} song(s).',
+    title = f'Tìm thấy {len(options)} bài.',
     color = random_color()
   )
   message = await ctx.send(embed = embed, components = components, delete_after = 60)
@@ -235,10 +235,10 @@ async def _search(ctx, *, query):
 async def _play(ctx, *, text):
   if is_restarting():
     embed = Embed(
-      title = 'This bot is restarting to update its component, please try again in 2 minutes.',
+      title = ' Đợi 2 phút bạn, bot đang restart.',
       color = random_color()
     )
-    embed.set_author(name = '❗ Error')
+    embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
     return
 
@@ -247,29 +247,29 @@ async def _play(ctx, *, text):
       await ctx.author.voice.channel.connect()
     else:
       embed = Embed(
-        title = 'You are not connected to a voice channel.',
+        title = 'Vô voice bạn ơi.',
         color = random_color()
       )
-      embed.set_author(name = '❗ Error')
+      embed.set_author(name = '❗ Lỗi')
       await ctx.send(embed = embed)
       return
     
   p = get_player(ctx.author.guild.id)
   if not p:
     embed = Embed(
-      title = 'Something is wrong, please make bot rejoin voice channel to reset settings.',
+      title = 'Lỗi rồi, cho bot thoát ra vào lại voice đi bạn.',
       color = random_color()
     )
-    embed.set_author(name = '❗ Error')
+    embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
     return
   
   if (text == None) or (text == ''):
     embed = Embed(
-      title = 'You need to enter an url or a query.',
+      title = 'Nhập link hay từ khoá bạn ơi.',
       color = random_color()
     )
-    embed.set_author(name = '❗ Error')
+    embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
     return
   
@@ -284,7 +284,7 @@ async def _play(ctx, *, text):
             title = songs,
             color = random_color()
           )
-          embed.set_author(name = '❗ Error')
+          embed.set_author(name = '❗ Lỗi')
           await ctx.send(embed = embed)
           return
       else:
@@ -294,17 +294,17 @@ async def _play(ctx, *, text):
             title = songs,
             color = random_color()
           )
-          embed.set_author(name = '❗ Error')
+          embed.set_author(name = '❗ Lỗi')
           await ctx.send(embed = embed)
           return
         songs = [songs]
     else:
       if text.startswith('http') or text.startswith('www'):
         embed = Embed(
-          title = 'This bot only supports YouTube.',
+          title = 'Chỉ hỗ trợ YouTube.',
           color = random_color()
         )
-        embed.set_author(name = '❗ Error')
+        embed.set_author(name = '❗ Lỗi')
         await ctx.send(embed = embed)
         return
       else:
@@ -314,7 +314,7 @@ async def _play(ctx, *, text):
             title = urls,
             color = random_color()
           )
-          embed.set_author(name = '❗ Error')
+          embed.set_author(name = '❗ Lỗi')
           await ctx.send(embed = embed)
           return
         res, songs = await get_info(urls[0])
@@ -323,17 +323,17 @@ async def _play(ctx, *, text):
             title = songs,
             color = random_color()
           )
-          embed.set_author(name = '❗ Error')
+          embed.set_author(name = '❗ Lỗi')
           await ctx.send(embed = embed)
           return
         songs = [songs]
           
   if len(songs) == 0:
     embed = Embed(
-      title = 'No songs found with this url.',
+      title = 'Link lỗi.',
       color = random_color()
     )
-    embed.set_author(name = '❗ Error')
+    embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
     return
 
@@ -344,19 +344,19 @@ async def _play(ctx, *, text):
       url = songs[0].url,
       color = random_color()
     )
-    embed.set_author(name = '⏏️ Enqueued')
+    embed.set_author(name = '⏏️ Đang chờ phát')
     if songs[0].thumbnail:
       embed.set_thumbnail(url = songs[0].thumbnail)
     embed.set_footer(text = f'#️⃣ {len(p.songs)+1}/{len(p.songs)+1}')
     await ctx.send(embed = embed)
   else:
     embed = Embed(
-      title = f'🎵 {len(songs)} songs from 📄 {infos["title"]} 👤 {infos["uploader"]}',
+      title = f'🎵 {len(songs)} bài trong 📄 {infos["title"]} 👤 {infos["uploader"]}',
       url = infos['url'],
       color = random_color()
     )
     embed.set_thumbnail(url = infos['thumbnail'])
-    embed.set_author(name = '⏏️ Enqueued')
+    embed.set_author(name = '⏏️ Đang chờ phát')
     embed.set_footer(text = f'#️⃣ {len(p.songs)+1}/{len(p.songs)+len(songs)}')
     await ctx.send(embed = embed)
   p.text_channel = ctx.channel
@@ -394,7 +394,7 @@ async def _current(ctx):
   def create_embed(p):
     if len(p.songs) <= 0:
       embed = Embed(
-        title = 'No songs in queue.',
+        title = 'Không có bài nào.',
         color = random_color()
       )
       return embed
@@ -408,7 +408,7 @@ async def _current(ctx):
     )
     if song.thumbnail:
       embed.set_thumbnail(url = song.thumbnail)
-    embed.set_author(name = '▶️ Now playing')
+    embed.set_author(name = '▶️ Đang phát')
     embed.set_footer(text = f'#️⃣ {p.current+1}/{len(p.songs)}')
     return embed
 
@@ -452,11 +452,11 @@ async def _current(ctx):
       return
 
     sec = 3
-    await inter.reply('Please wait...', delete_after = sec)
+    await inter.reply('Đợi tý...', delete_after = sec)
     await _back(inter)
     await sleep(sec)
     await inter.message.edit(embed = create_embed(p))
-    if inter.message.embeds[0].title.startswith('No songs in queue.'):
+    if inter.message.embeds[0].title.startswith('Không có bài nào.'):
       await inter.message.edit(components=[])
     
   @on_click.matching_id("next_button")
@@ -467,11 +467,11 @@ async def _current(ctx):
       return 
 
     sec = 3
-    await inter.reply('Please wait...', delete_after = sec)
+    await inter.reply('Đợi tý...', delete_after = sec)
     await _skip(inter)
     await sleep(sec)
     await inter.message.edit(embed = create_embed(p))
-    if inter.message.embeds[0].title.startswith('No songs in queue.'):
+    if inter.message.embeds[0].title.startswith('Không có bài nào.'):
       await inter.message.edit(components=[])
 
   @on_click.matching_id("pause_button")
