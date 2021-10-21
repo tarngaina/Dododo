@@ -4,7 +4,7 @@ from discord import Embed
 from discord.ext import tasks
 
 from song import Song
-from youtube import get_source
+from youtube import get_audio_source
 from util import random_color
 from resource import save, load
 
