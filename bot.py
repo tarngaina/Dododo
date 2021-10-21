@@ -11,7 +11,7 @@ from song import Song
 from youtube import search as youtube_search, get_info, get_info_playlist
 from util import to_int, random_color
 from resource import prepare as resource_prepare, load as resource_load, save as resource_save
-from maintenance import prepare as maintenance_prepare, restart, is_restarting
+from maintenance import prepare as maintenance_prepare, restart, is_restarting, log
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], case_insensitive = True, intents = Intents.all())
 bot.remove_command('help')
@@ -28,13 +28,15 @@ async def on_command_error(ctx, error):
     )
     embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
-  if isinstance(error, commands.CommandOnCooldown):
+  elif isinstance(error, commands.CommandOnCooldown):
     embed = Embed(
       title = f'Thử lại sau {error.retry_after:.2f} giây.',
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
+  else:
+    await log(str(error))
   
   
 @bot.event
