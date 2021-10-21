@@ -117,8 +117,12 @@ ytdl_source = YoutubeDL(
   }
 )
 
-async def get_source(url, song = None):
+async def get_audio_source(url = None, song = None):
   data = None
+  if not url and not song:
+    return Fase, 'Không có link.', song
+  if song and not url:
+    url = song.url
   try: 
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info(url, download=False))
   
