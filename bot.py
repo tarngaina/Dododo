@@ -75,7 +75,7 @@ async def _restart(ctx):
     await ctx.message.add_reaction('✅')
   else:
     embed = Embed(
-      title = 'Ôi bạn ơi, bạn chưa đủ sức mạnh để làm chủ cái này.',
+      title = 'Ôi bạn ơi, bạn chưa làm chủ được sức mạnh của mình đâu.',
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
