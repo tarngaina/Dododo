@@ -143,15 +143,13 @@ class Player:
     if self.error_block > 0:
       self.error_block -= 1
       return
-    song = self.songs[self.current]
-    res, audio_source, song = await get_source(song.url, song = song)
+    res, audio_source, song = await get_audio_source(song = self.songs[self.current])
     if not res:
       if self.text_channel:
-        msg = audio_source
         embed = Embed(
           title = f'🎵 {song.fixed_title(1000)}',
-          description = msg,
-          url = self.songs[self.current].url,
+          description = audio_source,
+          url = song.url,
           color = random_color()
         )
         embed.set_author(name = '❗ Lỗi')
@@ -180,7 +178,7 @@ class Player:
     self.voice_client.play(audio_source, after = self.after_play)   
 
     
-  def after_play(self, error=None):
+  def after_play(self, error = None):
     if error:
       if self.text_channel:
         song = self.songs[self.current]
