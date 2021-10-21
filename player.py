@@ -51,6 +51,8 @@ async def on_update(p):
   if (p.idle > 600) or (p.idle2 > 300):
     await p.voice_client.disconnect()
     return
+  if (p.is_playing) and (p.voice_client) and (p.voice_client.is_playing()):
+    p.played += 1
   if (not p.task_block) and (p.voice_client) and (len(p.songs) > 0) and (not p.is_playing) and (p.current < len(p.songs)):
     p.task_block = True
     await p.play()
@@ -114,6 +116,7 @@ class Player:
     self.current_page = 0
     self.max_page = 0
     self.error_block = 0
+    self.played = 0
 
 
   def update(self, **dic):
@@ -175,6 +178,7 @@ class Player:
     self.is_playing = True
     if self.voice_client.is_playing():
       self.voice_client.stop()
+    self.played = 0
     self.voice_client.play(audio_source, after = self.after_play)   
 
     
