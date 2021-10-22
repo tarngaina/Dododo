@@ -209,7 +209,7 @@ async def _search(ctx, *, query):
         break
       res, song = await get_info(url)
       if res:
-        options.append(SelectOption(label = f'🎵 {song.fixed_title(1000)}', value = url, description = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(1000)}'))
+        options.append(SelectOption(label = f'🎵 {song.fixed_title(90)}', value = url, description = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(90)}'))
   
   components = [
     SelectMenu(
@@ -342,8 +342,8 @@ async def _play(ctx, *, text):
 
   if len(songs) == 1:
     embed = Embed(
-      title = f'🎵 {songs[0].fixed_title(1000)}',
-      description = f'🕒 {songs[0].fixed_duration()} 👤 {songs[0].fixed_uploader(1000)}',
+      title = f'🎵 {songs[0].fixed_title(97)}',
+      description = f'🕒 {songs[0].fixed_duration()} 👤 {songs[0].fixed_uploader(97)}',
       url = songs[0].url,
       color = random_color()
     )
@@ -405,8 +405,8 @@ async def _current(ctx):
     song = p.songs[p.current]
     temp = Song(duration = p.played)
     embed = Embed(
-      title = f'🎵 {song.fixed_title(1000)}',
-      description = f'🕒 {temp.fixed_duration()} / {song.fixed_duration()} 👤 {song.fixed_uploader(1000)}\n\n📅 {song.fixed_upload_date()} 📊 {song.fixed_view_count()} 👍 {song.fixed_like_count()}\n{song.fixed_description()}',
+      title = f'🎵 {song.fixed_title(97)}',
+      description = f'🕒 {temp.fixed_duration()} / {song.fixed_duration()} 👤 {song.fixed_uploader(97)}\n\n📅 {song.fixed_upload_date()} 📊 {song.fixed_view_count()} 👍 {song.fixed_like_count()}\n\n{song.fixed_description()}',
       url = song.url,
       color = random_color()
     )
@@ -574,7 +574,7 @@ async def _queue(ctx):
       index = (current_page-1) * 10 + i
       if index < len(p.songs):
         song = p.songs[index]
-        embed.add_field(name = f'{"▶️ " if index == p.current else "#️⃣ "} {index+1} 🎵 {song.fixed_title(1000)}', value = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(1000)}', inline = False)
+        embed.add_field(name = f'{"**▶️ " if index == p.current else "#️⃣ "} {index+1} 🎵 {song.fixed_title(97)} {"**" if index == p.current else ""}', value = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(97)}', inline = False)
     duration = 0
     for song in p.songs:
       duration += song.duration
@@ -719,8 +719,8 @@ async def _remove(ctx, param = None):
         p.voice_client.stop()
     p.current -= 1
   embed = Embed(
-    title = f'🎵 {song.fixed_title(1000)}',
-    description = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(1000)}',
+    title = f'🎵 {song.fixed_title(97)}',
+    description = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(97)}',
     url = song.url,
     color = random_color()
   )
