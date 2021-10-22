@@ -5,18 +5,40 @@ from discord.ext import commands
 from discord import Embed, Intents, Activity, ActivityType
 from dislash import InteractionClient, SelectMenu, SelectOption, ActionRow, Button, ButtonStyle
 from asyncio import sleep
+from traceback import format_exc as exc
 
-from player import prepare as player_prepare, get_player, get_players, add_player, remove_player
 from song import Song
-from youtube import search as youtube_search, get_info, get_info_playlist
-from util import to_int, random_color
+from player import prepare as player_prepare, Player
+from youtube import search as youtube_search, download_info, download_info_playlist
 from resource import prepare as resource_prepare, load as resource_load, save as resource_save
-from maintenance import prepare as maintenance_prepare, restart, is_restarting, log
+from system import TOKEN, OWNER_ID, prepare as system_prepare, restart, is_restarting, log
+from util import to_int, random_color, Page
+
 
 bot = commands.Bot(command_prefix = ['#', '$', '-'], case_insensitive = True, intents = Intents.all())
 bot.remove_command('help')
 InteractionClient(bot)
-OWNER_ID = int(getenv('owner_id'))
+
+
+@bot.event
+async def on_ready():
+  await bot.wait_until_ready()
+  await bot.change_presence(
+    activity = Activity(
+      type = ActivityType.listening, 
+      name = "Watame Lullaby"
+    )
+  )
+  await system_prepare(bot, Player.get_players)
+  await resource_prepare(bot)
+  await player_prepare(bot)
+
+
+@bot.event
+async def on_error(event, *args, **kwargs):
+  msg = f'Error in: {event}\n{exc()}'
+  await log(msg)
+  print(msg)
 
 
 @bot.event
@@ -36,7 +58,9 @@ async def on_command_error(ctx, error):
     embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
   else:
-    await log(str(error))
+    msg = f'{error}\n{exc()}'
+    await log(msg)
+    print(msg)
   
   
 @bot.event
@@ -45,44 +69,30 @@ async def on_voice_state_update(member, before, after):
     if not before.channel and after.channel:
       for voice_client in bot.voice_clients:
         if voice_client.channel.id == after.channel.id:
-          add_player(voice_client)
+          Player.players.append(Player(voice_client))
     if before.channel and not after.channel:
-      p = get_player(before.channel.id)
+      p = Player.get_player(before.channel.id)
       if p:
-        remove_player(p)
-  for p in get_players():
+        Player.players.remove(p)
+  for p in Player.get_players():
     p.member = len(p.voice_client.channel.members)
-       
-        
-@bot.event
-async def on_ready():
-  await bot.wait_until_ready()
-  await bot.change_presence(
-    activity = Activity(
-      type = ActivityType.listening, 
-      name = "Watame Lullaby"
-    )
-  )
-  await resource_prepare(bot)
-  await maintenance_prepare(bot, get_players)
-  await player_prepare(bot)
 
 
 @bot.command(name = 'restart')
 async def _restart(ctx):
-  if ctx.author.id == OWNER_ID:
-    await restart()
-    await ctx.message.add_reaction('✅')
-  else:
+  if ctx.author.id != OWNER_ID:
     embed = Embed(
       title = 'Ôi bạn ơi, bạn chưa làm chủ được sức mạnh của mình đâu.',
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
     await ctx.send(embed = embed)
+    return
+
+  await restart()
+  await ctx.message.add_reaction('✅')
 
 
-help_page = 1
 @bot.command(name = 'help', aliases = ['h', 'giúp', 'giup'])
 async def _help(ctx):
   def create_embed(page):
@@ -103,11 +113,11 @@ async def _help(ctx):
       embed.add_field(name = '#️⃣ tới', value = '⏭️ Phát bài tiếp theo.\n*hoặc: toi, next, skip*', inline = False)
       embed.add_field(name = '#️⃣ nhảy <vị trí>', value = '⤵️ Nhảy tới bài được chọn và phát.\n*hoặc: nhay, jump, move*', inline = False)
       embed.add_field(name = '#️⃣ xóa <vị trí>', value = '🧹 Xóa bài được chọn.\n*hoặc: xoá, xoa, remove, delete*', inline = False)
-      embed.add_field(name = '#️⃣ nghỉ', value = '🧹 Dừng và xóa tất cả bài hát.\n*hoặc: nghi, clear, clean*', inline = False)
     elif page == 3:  
       embed.add_field(name = '#️⃣ dừng', value = '⏸️ Tạm dừng phát nhạc.\n*hoặc: dung, pause, stop*', inline = False)
       embed.add_field(name = '#️⃣ tiếp', value = '▶️ Tiếp tục phát nhạc.\n*hoặc: tiep, resume, continue*', inline = False)
       embed.add_field(name = '#️⃣ trộn', value = '🔀 Trộn danh mục phát và phát lại từ đầu.\n*hoặc: tron, shuffle*', inline = False)
+      embed.add_field(name = '#️⃣ nghỉ', value = '🧹 Dừng và xóa tất cả bài hát.\n*hoặc: nghi, clear, clean*', inline = False)
       embed.add_field(name = '#️⃣ lặp [chế độ]', value = '🔁 Chọn chế độ lặp: tắt/một/tất cả.\n*hoặc: lap, loop, repeat*', inline = False)
     else:
       embed.add_field(name = '#️⃣ lưu <tên>', value = '📄 Lưu danh sách phát.\n*hoặc: luu, save*', inline = False)
@@ -115,47 +125,47 @@ async def _help(ctx):
       embed.add_field(name = '#️⃣ bỏ <tên>', value = '📄 Xoá danh sách phát đã lưu.\n*hoặc: bo, forget*', inline = False)
     return embed
   
-  global help_page
-  help_page = 1
-  embed = create_embed(help_page)
-  components = [
-    ActionRow(
-      Button(
-        style = ButtonStyle.blurple,
-        label = "◀",
-        custom_id = "left_button"
-      ),
-      Button(
-        style = ButtonStyle.blurple,
-        label = "▶",
-        custom_id = "right_button"
-      )
-    )
-  ]
-  message = await ctx.send(embed = embed, components = components)
-  on_click = message.create_click_listener(timeout = 300)
+  page = Page(
+    message = await ctx.send(
+      embed = create_embed(1), 
+      components = [
+        ActionRow(
+        Button(
+          style = ButtonStyle.blurple,
+          label = "◀",
+          custom_id = "left_button"
+        ),
+        Button(
+          style = ButtonStyle.blurple,
+          label = "▶",
+          custom_id = "right_button"
+          )
+        )
+      ]
+    ),
+    value = 1
+  )
+  Page.pages.append(page)
+  on_click = page.message.create_click_listener(timeout = 300)
 
   @on_click.matching_id("left_button")
   async def on_left_button(inter):
     await inter.reply('Đợi xíu...', delete_after = 0)
-    global help_page
-    help_page -= 1
-    if help_page < 1:
-      help_page = 1
-    await inter.message.edit(embed = create_embed(help_page))
+    page = Page.get_page(inter.message.id)
+    page.decrease(max_page = 4)
+    await inter.message.edit(embed = create_embed(page.value))
     
   @on_click.matching_id("right_button")
   async def on_right_button(inter):
     await inter.reply('Đợi xíu...', delete_after = 0)
-    global help_page
-    help_page += 1
-    if help_page > 4:
-      help_page = 4
-    await inter.message.edit(embed = create_embed(help_page))
+    page = Page.get_page(inter.message.id)
+    page.increase(max_page = 4)
+    await inter.message.edit(embed = create_embed(page.value))
     
   @on_click.timeout
   async def on_timeout():
-    await message.edit(components=[])
+    Page.pages.remove(page)
+    await page.message.edit(components=[])
 
 
 @bot.command(name = 'join', aliases = ['j', 'vào', 'vao'])
@@ -205,16 +215,16 @@ async def _search(ctx, *, query):
   options = []
   async with ctx.typing():
     for url in urls:
-      if len(options) > 9:
+      if len(options) >= 8:
         break
-      res, song = await get_info(url)
+      res, song = await download_info(url)
       if res:
         options.append(SelectOption(label = f'🎵 {song.fixed_title(90)}', value = url, description = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(90)}'))
   
   components = [
     SelectMenu(
       custom_id = 'search',
-      placeholder = 'Bấm đây để chọn bài hát',
+      placeholder = 'Chọn bài ngay đây',
       max_values = len(options),
       options = options
     )
@@ -257,7 +267,7 @@ async def _play(ctx, *, text):
       await ctx.send(embed = embed)
       return
     
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     embed = Embed(
       title = 'Lỗi rồi, cho bot thoát ra vào lại voice đi bạn.',
@@ -281,7 +291,7 @@ async def _play(ctx, *, text):
   async with ctx.typing():
     if ('youtu.be' in text) or ('youtube.com' in text):
       if 'playlist?' in text:
-        res, songs, infos = await get_info_playlist(text)
+        res, songs, infos = await download_info_playlist(text)
         if not res:
           embed = Embed(
             title = songs,
@@ -291,7 +301,7 @@ async def _play(ctx, *, text):
           await ctx.send(embed = embed)
           return
       else:
-        res, songs = await get_info(text)
+        res, songs = await download_info(text)
         if not res:
           embed = Embed(
             title = songs,
@@ -320,7 +330,7 @@ async def _play(ctx, *, text):
           embed.set_author(name = '❗ Lỗi')
           await ctx.send(embed = embed)
           return
-        res, songs = await get_info(urls[0])
+        res, songs = await download_info(urls[0])
         if not res:
           embed = Embed(
             title = songs,
@@ -368,7 +378,7 @@ async def _play(ctx, *, text):
 
 @bot.command(name = 'back', aliases = ['prev', 'previous', 'bacc', 'lùi', 'lui'])
 async def _back(ctx):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   
@@ -383,7 +393,7 @@ async def _back(ctx):
   
 @bot.command(name = 'skip', aliases = ['next', 'tới', 'toi'])
 async def _skip(ctx):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   
@@ -404,10 +414,12 @@ async def _current(ctx):
 
     song = p.songs[p.current]
     temp = Song(duration = p.played)
+    if temp.duration > song.duration:
+      temp.duration = song.duration
     embed = Embed(
       title = f'🎵 {song.fixed_title(97)}',
       description = f'🕒 {temp.fixed_duration()} / {song.fixed_duration()} 👤 {song.fixed_uploader(97)}\n\n📅 {song.fixed_upload_date()} 📊 {song.fixed_view_count()} 👍 {song.fixed_like_count()}\n\n{song.fixed_description()}',
-      url = song.url,
+      url = f'{song.url}&start={temp.duration}',
       color = random_color()
     )
     if song.thumbnail:
@@ -416,41 +428,42 @@ async def _current(ctx):
     embed.set_footer(text = f'#️⃣ {p.current+1}/{len(p.songs)}')
     return embed
 
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
 
-  embed = create_embed(p)
-  components = [
-    ActionRow(
-      Button(
-        style = ButtonStyle.blurple,
-        label = "<<",
-        custom_id = "previous_button"
-      ),
-      Button(
-        style = ButtonStyle.blurple,
-        label = "❚❚",
-        custom_id = "pause_button"
-      ),
-      Button(
-        style = ButtonStyle.blurple,
-        label = "▶",
-        custom_id = "resume_button"
-      ),
-      Button(
-        style = ButtonStyle.blurple,
-        label = ">>",
-        custom_id = "next_button"
+  message = await ctx.send(
+    embed = create_embed(p), 
+    components = [
+      ActionRow(
+        Button(
+          style = ButtonStyle.blurple,
+          label = "<<",
+          custom_id = "previous_button"
+        ),
+        Button(
+          style = ButtonStyle.blurple,
+          label = "❚❚",
+          custom_id = "pause_button"
+        ),
+        Button(
+          style = ButtonStyle.blurple,
+          label = "▶",
+          custom_id = "resume_button"
+        ),
+        Button(
+          style = ButtonStyle.blurple,
+          label = ">>",
+          custom_id = "next_button"
+        )
       )
-    )
-  ]
-  message = await ctx.send(embed = embed, components = components)
+    ]
+  )
   on_click = message.create_click_listener(timeout = 300)
 
   @on_click.matching_id("previous_button")
   async def on_left_button(inter):
-    p = get_player(inter.author.guild.id)
+    p = Player.get_player(inter.author.guild.id)
     if not p:
       await inter.message.delete()
       return
@@ -465,7 +478,7 @@ async def _current(ctx):
     
   @on_click.matching_id("next_button")
   async def on_right_button(inter):
-    p = get_player(inter.author.guild.id)
+    p = Player.get_player(inter.author.guild.id)
     if not p:
       await inter.message.delete()
       return 
@@ -480,7 +493,7 @@ async def _current(ctx):
 
   @on_click.matching_id("pause_button")
   async def on_right_button(inter):
-    p = get_player(inter.author.guild.id)
+    p = Player.get_player(inter.author.guild.id)
     if not p:
       await inter.message.delete()
       return
@@ -493,7 +506,7 @@ async def _current(ctx):
 
   @on_click.matching_id("resume_button")
   async def on_right_button(inter):
-    p = get_player(inter.author.guild.id)
+    p = Player.get_player(inter.author.guild.id)
     if not p:
       await inter.message.delete()
       return
@@ -511,7 +524,7 @@ async def _current(ctx):
 
 @bot.command(name = 'jump', aliases = ['move', 'nhảy', 'nhay'])
 async def _jump(ctx, param = None):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
     
@@ -570,11 +583,14 @@ async def _queue(ctx):
       color = random_color()
     )
     value = ''
-    for i in range(0, 10):
-      index = (current_page-1) * 10 + i
+    for i in range(0, 5):
+      index = (current_page-1) * 5 + i
       if index < len(p.songs):
         song = p.songs[index]
-        embed.add_field(name = f'{"**▶️ " if index == p.current else "#️⃣ "} {index+1} 🎵 {song.fixed_title(97)} {"**" if index == p.current else ""}', value = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(97)}', inline = False)
+        if index == p.current:
+          embed.add_field(name = f'*▶️ {index+1} 🎵 {song.fixed_title(97)}***', value = f'*🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(97)}*', inline = False)
+        else:
+          embed.add_field(name = f'#️⃣ {index+1} 🎵 {song.fixed_title(97)} {"***" if index == p.current else ""}', value = f'🕒 {song.fixed_duration()} 👤 {song.fixed_uploader(97)}', inline = False)
     duration = 0
     for song in p.songs:
       duration += song.duration
@@ -588,7 +604,7 @@ async def _queue(ctx):
     embed.set_footer(text = text)
     return embed
 
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   if len(p.songs) <= 0:
@@ -599,67 +615,77 @@ async def _queue(ctx):
     await ctx.send(embed = embed)
     return
   
-  p.max_page = (len(p.songs)-1) // 10 + 1
-  p.current_page = p.current // 10 + 1
-  embed = create_embed(p.current_page, p.max_page)
-  components = [
-    ActionRow(
-      Button(
-        style = ButtonStyle.blurple,
-        label = "◀",
-        custom_id = "left_button"
-      ),
-      Button(
-        style = ButtonStyle.blurple,
-        label = "▶",
-        custom_id = "right_button"
-      )
-    )
-  ]
 
-  message = await ctx.send(embed = embed,  components = components)
-  on_click = message.create_click_listener(timeout = 120)
+  current_page = p.current // 5 + 1
+  max_page = (len(p.songs)-1) // 5 + 1
+  page = Page(
+    message = await ctx.send(
+      embed = create_embed(current_page, max_page),
+      components = [
+        ActionRow(
+          Button(
+            style = ButtonStyle.blurple,
+            label = "◀",
+            custom_id = "left_button"
+          ),
+          Button(
+            style = ButtonStyle.blurple,
+            label = "▶",
+            custom_id = "right_button"
+          )
+        )
+      ]
+    ),
+    value = current_page
+  )
+  Page.pages.append(page)
+  on_click = page.message.create_click_listener(timeout = 300)
 
   @on_click.matching_id("left_button")
   async def on_left_button(inter):
     await inter.reply('Đợi tý...', delete_after = 0)
     if len(p.songs) > 0:
-      p.max_page = (len(p.songs)-1) // 10 + 1
-      p.current_page -= 1
-      if p.current_page < 1:
-        p.current_page = 1
-      await inter.message.edit(embed = create_embed(p.current_page, p.max_page))
+      max_page = (len(p.songs)-1) // 5 + 1
+      page = Page.get_page(inter.message.id)
+      page.decrease(max_page)
+      await inter.message.edit(embed = create_embed(page.value, max_page))
     else:
       embed = Embed(
         title = 'Không có bài nào.',
         color = random_color()
       )
+      page = Page.get_page(inter.message.id)
+      if page:
+        Page.pages.remove(page)
       await inter.message.edit(embed = embed, components = [])
 
   @on_click.matching_id("right_button")
   async def on_right_button(inter):
     await inter.reply('Đợi tý...', delete_after = 0)
     if len(p.songs) > 0:
-      p.max_page = (len(p.songs)-1) // 10 + 1
-      p.current_page += 1
-      if p.current_page > p.max_page:
-        p.current_page = p.max_page
-      await inter.message.edit(embed = create_embed(p.current_page, p.max_page))
+      max_page = (len(p.songs)-1) // 5 + 1
+      page = Page.get_page(inter.message.id)
+      page.increase(max_page)
+      await inter.message.edit(embed = create_embed(page.value, max_page))
     else:
       embed = Embed(
         title = 'Không có bài nào.',
         color = random_color()
       )
+      page = Page.get_page(inter.message.id)
+      if page:
+        Page.pages.remove(page)
       await inter.message.edit(embed = embed, components = [])
 
   @on_click.timeout
   async def on_timeout():
-    await message.edit(components=[])
+    Page.pages.remove(page)
+    await page.message.edit(components=[])
 
 
 @bot.command(name = 'clear', aliases = ['clean', 'nghỉ', 'nghi'])
 async def _clear(ctx):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   
@@ -673,7 +699,7 @@ async def _clear(ctx):
 
 @bot.command(name = 'remove', aliases = ['delete', 'xóa', 'xoá', 'xoa'])
 async def _remove(ctx, param = None):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   if len(p.songs) <= 0:
@@ -732,7 +758,7 @@ async def _remove(ctx, param = None):
   
 @bot.command(name = 'pause', aliases = ['stop', 'dừng', 'dung'])
 async def _pause(ctx):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   if not p.voice_client.is_paused():
@@ -742,7 +768,7 @@ async def _pause(ctx):
     
 @bot.command(name = 'resume', aliases = ['continue', 'tiếp', 'tiep'])
 async def _resume(ctx):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   if p.voice_client.is_paused():
@@ -752,7 +778,7 @@ async def _resume(ctx):
     
 @bot.command(name = 'loop', aliases = ['repeat', 'lặp', 'lap'])
 async def _loop(ctx, *, param = None):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   
@@ -790,7 +816,7 @@ async def _loop(ctx, *, param = None):
   
 @bot.command(name = 'shuffle', aliases = ['trộn', 'tron'])
 async def _shuffle(ctx):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   if len(p.songs) <= 0:
@@ -812,7 +838,7 @@ async def _shuffle(ctx):
 @bot.command(name = 'save', aliases = ['lưu', 'luu'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _save(ctx, *, pref = None):
-  p = get_player(ctx.author.guild.id)
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     return
   
@@ -851,8 +877,19 @@ async def _save(ctx, *, pref = None):
   prefs[key][pref] = []
   for song in p.songs:
     prefs[key][pref].append(song.to_dict())
-  await resource_save('prefs.json', prefs)
+
+  res, msg = await resource_save('prefs.json', prefs)
+  if not res:
+    embed = Embed(
+      title = msg,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Lỗi')
+    await ctx.send(embed = embed)
+    return
+
   await ctx.message.add_reaction('📄')
+  
   
 @bot.command(name = 'load', aliases = ['tải', 'tai'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
@@ -877,7 +914,8 @@ async def _load(ctx, *, pref = None):
       embed.set_author(name = '❗ Lỗi')
       await ctx.send(embed = embed)
       return
-  p = get_player(ctx.author.guild.id)
+      
+  p = Player.get_player(ctx.author.guild.id)
   if not p:
     embed = Embed(
       title = 'Lỗi rồi, cho bot thoát ra vào lại voice đi bạn.',
@@ -899,7 +937,6 @@ async def _load(ctx, *, pref = None):
   
   pref = str(pref)
   key = str(ctx.author.id)
-
 
   if key not in prefs:
     embed = Embed(
@@ -926,7 +963,7 @@ async def _load(ctx, *, pref = None):
       songs.append(Song.from_dict(song_dic))
     
   embed = Embed(
-    title = f'🎵 {len(songs)} songs from 📄 {pref} 👤 {ctx.author.display_name}',
+    title = f'🎵 {len(songs)} bài trong 📄 {pref} 👤 {ctx.author.display_name}',
     color = random_color()
   )
   embed.set_author(name = '⏏️ Đang chờ phát')
@@ -971,8 +1008,18 @@ async def _forget(ctx, *, pref = None):
     return
   
   prefs[key].pop(pref, None)
-  await resource_save('prefs.json', prefs)
+  
+  res, msg = await resource_save('prefs.json', prefs)
+  if not res:
+    embed = Embed(
+      title = msg,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Lỗi')
+    await ctx.send(embed = embed)
+    return
+
   await ctx.message.add_reaction('📄')
     
     
-bot.run(getenv('token'))
+bot.run(TOKEN)

@@ -3,9 +3,8 @@ from traceback import format_exc as exc
 
 from discord import File, Forbidden
 
-from maintenance import log
+from system import log
 from util import now_str
-
 
 RESOURCE_CHANNEL_ID = 889792058565488660
 resource_channel = None
@@ -15,9 +14,12 @@ resource_messages = {}
 
 async def prepare(bot):
   await bot.wait_until_ready()
+
   global resource_channel
   resource_channel = bot.get_channel(RESOURCE_CHANNEL_ID)
+
   await find_resource_messages()
+
 
 async def find_resource_messages():
   global resource_messages

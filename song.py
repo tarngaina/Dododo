@@ -61,7 +61,7 @@ class Song:
       t = t[:limit] + '...'
     return t
    
-  def fixed_uploader(self, limit = 32):
+  def fixed_uploader(self, limit = 97):
     t = self.uploader
     t = ' '.join([s for s in t.split(' ') if s != ''])
     cs = ['|', '`', '*', '_', '>']
@@ -71,7 +71,7 @@ class Song:
       t = t[:limit] + '...'
     return t
   
-  def fixed_description(self, limit = 250):
+  def fixed_description(self, limit = 400):
     t = self.description
     t = '\n'.join([s for s in t.split('\n') if s != ''])
     t = ' '.join([s for s in t.split(' ') if s != ''])
@@ -108,4 +108,20 @@ class Song:
     else:
       return f'🕒 {self.fixed_duration()} 🎵 {self.fixed_title(999)} 👤 {self.fixed_uploader(999)}';
 
-    
+class Playlist:
+  def __init__(self, **dic):
+    self.title = None
+    self.uploader = None
+    self.url = None
+    self.thumbnail = None
+    self.update(**dic)
+
+  def update(self, **dic):
+    if 'title' in dic:
+      self.title = dic['title']
+    if 'uploader' in data:
+      self.uploader = dic['uploader']
+    if 'url' in data:
+      self.url = dic['url']
+    if 'thumbnail' in dic:
+      self.thumbnail = dic['thumbnail']

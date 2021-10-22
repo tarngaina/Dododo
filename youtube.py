@@ -3,17 +3,20 @@ from asyncio import get_event_loop
 from traceback import format_exc as exc
 from re import compile, findall
 
-from discord import PCMVolumeTransformer, FFmpegOpusAudio, FFmpegPCMAudio
+from discord import PCMVolumeTransformer, FFmpegPCMAudio
 from yt_dlp import YoutubeDL
 
-from song import Song
-from maintenance import restart, log
-from util import strip_ansi
+from song import Song, Playlist
+from system import log
 
-def search(text, limit = 24):
+
+def search(query = None, limit = 10):
+  if not query:
+    return False, 'Không có từ khóa được nhập vào.'
+
   ids = None
   try:
-    ids = findall(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': text})).read().decode())
+    ids = findall(r'/watch\?v=(.{11})',  request.urlopen('http://www.youtube.com/results?' +  parse.urlencode({'search_query': query})).read().decode())
   
   except Exception as e:
     msg = f'{e}\n{exc()}'
@@ -22,15 +25,16 @@ def search(text, limit = 24):
   
   else:
     if (not ids) or (len(ids) == 0):
-      return False, f'Không tìm thấy bài hát với từ khóa: {text}.'
+      return False, f'Không tìm thấy bài hát với từ khóa: {query}.'
+
+    #xóa giống nhau
+    ids = list(set(ids))
 
     urls = []
     for id in ids:
-      url = f'https://youtu.be/{id}'
-      if url not in urls:
-        urls.append(url)
-    if len(urls) > limit:
-      urls = urls[:limit]
+      if (len(urls) >= limit):
+        break
+      urls.append(f'https://youtu.be/{id}')
     return True, urls
     
 
@@ -49,7 +53,10 @@ ytdl_extract = YoutubeDL(
   }
 )
 
-async def get_info(url):
+async def download_info(url = None):
+  if not url:
+    return False, 'Không có link nhập vào.'
+
   data = None
   try:
     url = r'https://youtu.be/' + url.split('=')[1][:11] if 'list=' in url else url
@@ -58,47 +65,50 @@ async def get_info(url):
   except Exception as e:
     msg = f'{strip_ansi(e)}\n{exc()}'
     await log(msg)
-    return False, strip_ansi(str(e))
+    return False, str(e)
   
   else: 
-    entry = data
-    if ('duration' in entry) and (entry['duration']):
-      song = Song(**entry)
-      song.update(url = r'https://youtu.be/' + entry['id'])
-      return True, song
+    if data:
+      entry = data
+      if ('duration' in entry) and (entry['duration']):
+        song = Song(**entry)
+        song.update(url = r'https://youtu.be/' + entry['id'])
+        return True, song
+
     return False, f'Không tìm thấy bài hát với link {url}.'
 
 
-async def get_info_playlist(url):
+async def download_info_playlist(url = None):
+  if not url:
+    return False, 'Không có link nhập vào.', None
+
   data = None
   try:
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_extract.extract_info(url, download=False))
   
   except Exception as e:
-    msg = f'{strip_ansi(e)}\n{exc()}'
+    msg = f'{e}\n{exc()}'
     await log(msg)
-    return False, strip_ansi(str(e)), None
+    return False, str(e), None
   
   else:
-    infos = {}
-    if 'title' in data:
-      infos['title'] = data['title']
-    if 'uploader' in data:
-      infos['uploader'] = data['uploader']
-    if 'original_url' in data:
-      infos['url'] = data['original_url']
-    if 'thumbnails' in data:
-      if data['thumbnails'] != None:
-        infos['thumbnail'] = data['thumbnails'][-1]['url'].split('?')[0]
-
+    playlist = None
     songs = []
-    if ('entries' in data) and (data['entries']):
-      for entry in data['entries']:
-        if ('duration' in entry) and (entry['duration']):
-          song = Song(**entry)
-          song.update(url = r'https://youtu.be/' + entry['id'])
-          songs.append(song)
-    return True, songs, infos
+    if data:
+      if ('uploader' in data) and data['uploader']:
+        playlist = Playlist(
+          title = data['title'],
+          uploader = data['uploader'],
+          url = data['original_url'],
+          thumbnail = data['thumbnails'][-1]['url'].split('?')[0]
+        )
+      if ('entries' in data) and (data['entries']):
+        for entry in data['entries']:
+          if ('duration' in entry) and (entry['duration']):
+            song = Song(**entry)
+            song.update(url = r'https://youtu.be/' + entry['id'])
+            songs.append(song)
+    return True, songs, playlist
     
 
 ytdl_source = YoutubeDL(
@@ -117,29 +127,31 @@ ytdl_source = YoutubeDL(
   }
 )
 
-async def get_audio_source(url = None, song = None):
-  data = None
+async def download_audio_source(url = None, song = None):
   if not url and not song:
-    return Fase, 'Không có link.', song
+    return Fase, 'Không có link nhập vào.', song
   if song and not url:
     url = song.url
+
+  data = None
   try: 
     data = await get_event_loop().run_in_executor(None, lambda: ytdl_source.extract_info(url, download=False))
   
   except Exception as e:
-    msg = f'{strip_ansi(e)}\n{exc()}'
+    msg = f'{e}\n{exc()}'
     await log(msg)
-    return False, strip_ansi(str(e)), song
+    return False, str(e), song
   
   else:
-    song.update(
-      title = data['title'], 
-      uploader = data['uploader'], 
-      thumbnail = data['thumbnail'],
-      description = data['description'],
-      like_count = data['like_count'],
-      view_count = data['view_count'],
-      upload_date = data['upload_date']
-    )
-    return True, PCMVolumeTransformer(FFmpegPCMAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), volume = 1.75), song
-  
+    if data:
+      song.update(
+        title = data['title'], 
+        uploader = data['uploader'], 
+        thumbnail = data['thumbnail'],
+        description = data['description'],
+        like_count = data['like_count'],
+        view_count = data['view_count'],
+        upload_date = data['upload_date']
+      )
+      return True, PCMVolumeTransformer(FFmpegPCMAudio(data['url'], before_options = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options = '-vn'), volume = 1.8), song
+    return False, 'Lỗi gì rồi chiu.', song
