@@ -19,12 +19,6 @@ bot = commands.Bot(command_prefix = ['#', '$', '-'], case_insensitive = True, in
 bot.remove_command('help')
 inter_bot = InteractionClient(bot)
 
-
-@inter_bot.message_command(name = "Phát", test_guilds = [772299132735848458])
-async def _context_play(inter):
-    await _play(inter.message.content)
-
-
 @bot.event
 async def on_ready():
   await bot.wait_until_ready()
