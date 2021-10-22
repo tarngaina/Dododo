@@ -55,10 +55,8 @@ async def load(filename):
     await find_resource_messages()
     return False, 'Something is wrong right now, try again.'
   except NotFound:
-    with open(filename, 'w+', encoding = 'utf-8') as f:
-      f.write('{}')
-    resource_messages[filename] = await resource_channel.send(now_str(), file = File(filename))
-    return True, {}
+    await find_resource_messages()
+    return False, 'Something is wrong right now, try again.'
   except Exception as e:
     msg = f'{e}\n{exc()}'
     await log(msg)
