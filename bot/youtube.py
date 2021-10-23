@@ -27,8 +27,8 @@ def search(query = None, limit = 10):
     if (not ids) or (len(ids) == 0):
       return False, f'Không tìm thấy bài hát với từ khóa: {query}.'
 
-    #xóa giống nhau
-    ids = list(set(ids))
+    
+    ids = list(dict.fromkeys(ids))
 
     urls = []
     for id in ids:
