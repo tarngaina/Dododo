@@ -1,7 +1,7 @@
 from json import loads, dump
 from traceback import format_exc as exc
 
-from discord import File, Forbidden
+from discord import File, Forbidden, NotFound
 
 from dododo.system import log
 from dododo.util import now_str
