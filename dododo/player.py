@@ -29,7 +29,7 @@ async def prepare(bot):
         songs = player_dict['songs'],
         current = player_dict['current']
       )
-      if 'text_channel' in player_dict:
+      if 'text_channel_id' in player_dict:
         p.text_channel = bot.get_channel(int(player_dict['text_channel_id']))
       p.update(member = len(p.voice_client.channel.members))
 
