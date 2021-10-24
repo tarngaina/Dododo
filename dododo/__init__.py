@@ -775,8 +775,10 @@ async def _queue(ctx):
   async def on_loop_button(inter):
     await inter.reply('Đợi tý...', delete_after = 0)
     if len(p.songs) > 0:
+      max_page = (len(p.songs)-1) // 5 + 1
+      page = Page.get_page(inter.message.id)
       await _loop(inter, param = None, response = False)
-      await inter.message.edit(components = create_components(p.loop))
+      await inter.message.edit(embed = create_embed(page.value, max_page), components = create_components(p.loop))
     else:
       embed = Embed(
         title = 'Không có bài nào.',
