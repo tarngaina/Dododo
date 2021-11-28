@@ -2,7 +2,7 @@ from os import getenv
 from random import shuffle
 
 from discord.ext import commands
-from discord import Embed, Intents, Activity, ActivityType
+from discord import User, Embed, Intents, Activity, ActivityType
 from dislash import InteractionClient, SelectMenu, SelectOption, ActionRow, Button, ButtonStyle
 from asyncio import sleep
 from traceback import format_exc as exc, format_tb
@@ -1174,7 +1174,7 @@ async def _forget(ctx, *, pref = None):
 
 @bot.command(name = 'copy', aliases = ['chép', 'chep'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
-async def _copy(ctx, user: discord.User, *, pref = None):
+async def _copy(ctx, user: User, *, pref = None):
   if not user:
     embed = Embed(
       title = ' Nhập người có listcaanf lây.',
