@@ -1171,5 +1171,64 @@ async def _forget(ctx, *, pref = None):
 
   await ctx.message.add_reaction('📄')
     
+
+@bot.command(name = 'copy', aliases = ['chép', 'chep'])
+@commands.cooldown(1, 3, commands.BucketType.guild)
+async def _copy(ctx, user: discord.User, *, pref = None):
+  if not user:
+    embed = Embed(
+      title = ' Nhập người có listcaanf lây.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Lỗi')
+    await ctx.send(embed = embed)
+    return
+    
+  res, prefs = await resource_load('prefs.json')
+  if not res:
+    embed = Embed(
+      title = prefs,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Lỗi')
+    await ctx.send(embed = embed)
+    return
+  
+  pref = str(pref)
+  key = str(user.id)
+
+  if key not in prefs:
+    embed = Embed(
+      title = f'{user.name} chưa lưu gì cả.',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Lỗi')
+    await ctx.send(embed = embed)
+    return
+  
+  if (pref == 'None') or (pref == '') or (pref not in prefs[key]):
+    embed = Embed(
+      title = f'Không tìm thấy: {pref}',
+      description = f'Danh mục phát {user.name} đã lưu:\n{", ".join(prefs[key].keys())}',
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Lỗi')
+    await ctx.send(embed = embed)
+    return
+
+  prefs[str(ctx.author.id)][pref] = prefs[key][pref]
+    
+  res, msg = await resource_save('prefs.json', prefs)
+  if not res:
+    embed = Embed(
+      title = msg,
+      color = random_color()
+    )
+    embed.set_author(name = '❗ Lỗi')
+    await ctx.send(embed = embed)
+    return
+
+  await ctx.message.add_reaction('📄')
+
     
 bot.run(TOKEN)
