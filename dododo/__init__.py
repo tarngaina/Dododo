@@ -120,9 +120,10 @@ async def _help(ctx):
       embed.add_field(name = '#️⃣ nghỉ', value = '⏹️ Dừng và xóa tất cả bài hát.\n*hoặc: nghi, clear, clean*', inline = False)
       embed.add_field(name = '#️⃣ lặp [chế độ]', value = '🔁 Chọn chế độ lặp: tắt/một/tất cả.\n*hoặc: lap, loop, repeat*', inline = False)
     else:
-      embed.add_field(name = '#️⃣ lưu <tên>', value = '📄 Lưu danh sách phát.\n*hoặc: luu, save*', inline = False)
-      embed.add_field(name = '#️⃣ tải <tên>', value = '📄 Tải danh sách phát đã lưu.\n*hoặc: tai, load*', inline = False)
-      embed.add_field(name = '#️⃣ bỏ <tên>', value = '📄 Xoá danh sách phát đã lưu.\n*hoặc: bo, forget*', inline = False)
+      embed.add_field(name = '#️⃣ lưu <tên danh sách phát>', value = '📄 Lưu danh sách phát.\n*hoặc: luu, save*', inline = False)
+      embed.add_field(name = '#️⃣ tải <tên danh sách phát>', value = '📄 Tải danh sách phát đã lưu.\n*hoặc: tai, load*', inline = False)
+      embed.add_field(name = '#️⃣ bỏ <tên danh sách phát>', value = '📄 Xoá danh sách phát đã lưu.\n*hoặc: bo, forget*', inline = False)
+      embed.add_field(name = '#️⃣ chép <thành viên> <tên danh sách phát>', value = '📄 Ăn cắp danh sách phát của người khác.\n*hoặc: chep, copy*', inline = False)
     return embed
   
   page = Page(
