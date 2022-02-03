@@ -39,7 +39,6 @@ async def prepare(bot):
 async def on_update(p):
   p.idle = p.idle + 1 if not p.is_playing else 0
   p.idle2 = p.idle2 + 1 if p.member < 2 else 0
-  print(f'{p.idle}-{p.idle2}')
 
   if (p.idle > 600) or (p.idle2 > 240):
     await p.voice_client.disconnect()
