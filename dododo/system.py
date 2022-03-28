@@ -53,7 +53,7 @@ async def update():
       await restart()
 
 
-@tasks.loop(seconds = 30):
+@tasks.loop(seconds = 30)
 async def send_discord_log():
   if not log_channel2:
     print('Warning: No log2 channel found.')
