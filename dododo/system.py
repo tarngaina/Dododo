@@ -53,7 +53,6 @@ async def update():
       await restart()
 
 
-@tasks.loop(seconds = 600)
 async def send_discord_log(text):
   if not log_channel2:
     print('Warning: No log2 channel found.')
@@ -63,15 +62,12 @@ async def send_discord_log(text):
 
 
 class ListHandler(logging.Handler): # Inherit from logging.Handler
-  def __init__(self, log_list):
+  def __init__(self):
     # run the regular Handler __init__
     logging.Handler.__init__(self)
-    # Our custom argument
-    self.log_list = log_list
 
   def emit(self, record):
     # record.message is the log message
-    self.log_list.append(record.msg) 
     get_event_loop().create_task(send_discord_log(record.msg))
 
 def start_discord_log():
@@ -80,8 +76,6 @@ def start_discord_log():
   handler = ListHandler()
   handler.setFormatter(logging.Formatter('[%(asctime)s]:[%(levelname)s]:[%(name)s]: %(message)s'))
   logger.addHandler(handler)
-  send_discord_log.start()
-
 
 def is_restarting():
   global restarting
