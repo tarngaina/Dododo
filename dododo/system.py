@@ -3,6 +3,7 @@ from asyncio import get_event_loop, sleep
 from traceback import format_exc as exc
 from socket import gethostbyname, gethostname
 
+import discord, logging
 from discord.ext import tasks
 from discord import File
 from github import Github
@@ -13,7 +14,9 @@ TOKEN = getenv('token')
 GTOKEN = getenv('gtoken')
 OWNER_ID = int(getenv('owner_id'))
 LOG_CHANNEL_ID = 891652708975673354
+LOG_CHANNEL_ID2 = 957822676670513162
 log_channel = None
+log_channel2 = None
 restarting = False
 count = 0
 get_players = None
@@ -30,9 +33,12 @@ async def prepare(bot, get_players_func):
 
   global log_channel
   log_channel = bot.get_channel(LOG_CHANNEL_ID)
+  
+  global_log_channel2
+  log_channel2 = bot.get_channel(LOG_CHANNEL_ID2)
 
   update.start()
-
+  start_discord_log()
   print('Deployed')
   await log(f'Deployed: {gethostbyname(gethostname())}')
 
@@ -47,10 +53,28 @@ async def update():
       await restart()
 
 
+@tasks.loop(seconds = 30):
+async def send_discord_log():
+  if not log_channel2:
+    print('Warning: No log2 channel found.')
+    return
+  
+  await log_channel2.send(f'{now_str()}', file = File('discord.log'))
+  open('discord.log', 'w').close()
+
+
+def start_discord_log():
+  logger = logging.getLogger('discord')
+  logger.setLevel(logging.DEBUG)
+  handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+  handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+  logger.addHandler(handler)
+  send_discord_log.start()
+
+
 def is_restarting():
   global restarting
   return restarting
-
 
 async def restart():
   global restarting
