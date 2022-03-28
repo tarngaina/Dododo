@@ -75,7 +75,7 @@ def start_discord_log():
   logger.setLevel(logging.DEBUG)
   handler = ListHandler()
   handler.setFormatter(logging.Formatter('[%(asctime)s]:[%(levelname)s]:[%(name)s]: %(message)s'))
-  logger.addHandler(handler)
+  #logger.addHandler(handler)
 
 def is_restarting():
   global restarting
