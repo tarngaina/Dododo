@@ -54,19 +54,30 @@ async def update():
 
 
 @tasks.loop(seconds = 600)
-async def send_discord_log():
+async def send_discord_log(text):
   if not log_channel2:
     print('Warning: No log2 channel found.')
     return
   
-  await log_channel2.send(f'{now_str()}', file = File('discord.log'))
-  open('discord.log', 'w').close()
+  await log_channel2.send(f'{now_str()}', text)
 
+
+class ListHandler(logging.Handler): # Inherit from logging.Handler
+  def __init__(self, log_list):
+    # run the regular Handler __init__
+    logging.Handler.__init__(self)
+    # Our custom argument
+    self.log_list = log_list
+
+  def emit(self, record):
+    # record.message is the log message
+    self.log_list.append(record.msg) 
+    get_event_loop().create_task(send_discord_log(record.msg))
 
 def start_discord_log():
   logger = logging.getLogger('discord')
   logger.setLevel(logging.DEBUG)
-  handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='a')
+  handler = ListHandler()
   handler.setFormatter(logging.Formatter('[%(asctime)s]:[%(levelname)s]:[%(name)s]: %(message)s'))
   logger.addHandler(handler)
   send_discord_log.start()
