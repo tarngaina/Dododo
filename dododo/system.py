@@ -60,6 +60,16 @@ async def send_discord_log(text):
   
   await log_channel2.send(f'{now_str()}\n```{text}```')
 
+class LogStream(object):
+    def __init__(self):
+        self.logs = []
+
+    def write(self, str):
+        self.logs.append(str)
+        get_event_loop().create_task(send_discord_log(str)))
+
+    def flush(self):
+        pass
 
 class ListHandler(logging.Handler): # Inherit from logging.Handler
   def __init__(self):
@@ -71,11 +81,8 @@ class ListHandler(logging.Handler): # Inherit from logging.Handler
     get_event_loop().create_task(send_discord_log(record.msg))
 
 def start_discord_log():
+  logging.basicConfig(stream=LogStream(), level=logging.DEBUG)
   logger = logging.getLogger('discord')
-  logger.setLevel(logging.DEBUG)
-  handler = ListHandler()
-  handler.setFormatter(logging.Formatter('[%(asctime)s]:[%(levelname)s]:[%(name)s]: %(message)s'))
-  #logger.addHandler(handler)
 
 def is_restarting():
   global restarting
