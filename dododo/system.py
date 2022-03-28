@@ -58,7 +58,7 @@ async def send_discord_log(text):
     print('Warning: No log2 channel found.')
     return
   
-  await log_channel2.send(f'{now_str()}', text)
+  await log_channel2.send(f'{now_str()}\n```{text}```')
 
 
 class ListHandler(logging.Handler): # Inherit from logging.Handler
