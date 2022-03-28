@@ -34,7 +34,7 @@ async def prepare(bot, get_players_func):
   global log_channel
   log_channel = bot.get_channel(LOG_CHANNEL_ID)
   
-  global_log_channel2
+  global log_channel2
   log_channel2 = bot.get_channel(LOG_CHANNEL_ID2)
 
   update.start()
