@@ -66,7 +66,7 @@ class LogStream(object):
 
     def write(self, str):
         self.logs.append(str)
-        get_event_loop().create_task(send_discord_log(str))
+        #get_event_loop().create_task(send_discord_log(str))
 
     def flush(self):
         pass
