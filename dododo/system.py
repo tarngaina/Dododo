@@ -53,7 +53,7 @@ async def update():
       await restart()
 
 
-@tasks.loop(seconds = 30)
+@tasks.loop(seconds = 300)
 async def send_discord_log():
   if not log_channel2:
     print('Warning: No log2 channel found.')
@@ -67,7 +67,7 @@ def start_discord_log():
   logger = logging.getLogger('discord')
   logger.setLevel(logging.DEBUG)
   handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-  handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+  handler.setFormatter(logging.Formatter('[%(asctime)s]:[%(levelname)s]:[%(name)s]: %(message)s'))
   logger.addHandler(handler)
   send_discord_log.start()
 
