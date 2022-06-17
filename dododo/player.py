@@ -7,7 +7,6 @@ from dododo.song import Song
 from dododo.youtube import download_audio_source
 from dododo.util import random_color
 from dododo.resource import save as resource_save, load as resource_load
-from dododo.system import log
 from os import listdir
 
 count = -10
@@ -191,7 +190,7 @@ class Player:
         get_event_loop().create_task(self.text_channel.send(embed = embed))
       self.error_block = 3
 
-    get_event_loop().create_task(log(','.join(listdir())))
+    print(','.join(listdir()))
       
     self.next()
     self.is_playing = False
