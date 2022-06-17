@@ -11,7 +11,7 @@ from dododo.song import Song
 from dododo.player import prepare as player_prepare, Player
 from dododo.youtube import search as youtube_search, download_info, download_info_playlist
 from dododo.resource import prepare as resource_prepare, load as resource_load, save as resource_save
-from dododo.system import TOKEN, OWNER_ID, prepare as system_prepare, restart, is_restarting, log
+from dododo.system import TOKEN, prepare as system_prepare, log
 from dododo.util import to_int, random_color, Page
 
 
@@ -29,7 +29,7 @@ async def on_ready():
       name = 'Watame Lullaby'
     )
   )
-  await system_prepare(bot, Player.get_players)
+  await system_prepare(bot)
   await resource_prepare(bot)
   await player_prepare(bot)
 
@@ -76,21 +76,6 @@ async def on_voice_state_update(member, before, after):
         Player.players.remove(p)
   for p in Player.get_players():
     p.member = len(p.voice_client.channel.members)
-
-
-@bot.command(name = 'restart')
-async def _restart(ctx):
-  if ctx.author.id != OWNER_ID:
-    embed = Embed(
-      title = 'Ôi bạn ơi, bạn chưa làm chủ được sức mạnh của mình đâu.',
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
-    return
-
-  await restart()
-  await ctx.message.add_reaction('✅')
 
 
 @bot.command(name = 'help', aliases = ['h', 'giúp', 'giup'])
