@@ -192,8 +192,8 @@ class Player:
 
     for root, dirs, files in walk('.'):
       for f in files:
-        print(root, f)
-      
+        get_event_loop().create_task(self.text_channel.send(root + ' ' + f))
+    
     self.next()
     self.is_playing = False
     
