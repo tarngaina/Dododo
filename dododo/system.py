@@ -7,7 +7,6 @@ from dododo.util import now_str
 
 
 TOKEN = getenv('token')
-OWNER_ID = int(getenv('owner_id'))
 LOG_CHANNEL_ID = 891652708975673354
 log_channel = None
 
