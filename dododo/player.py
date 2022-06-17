@@ -1,4 +1,4 @@
-from asyncio import sleep, get_event_loop, run
+from asyncio import sleep, get_event_loop
 
 from discord import Embed
 from discord.ext import tasks
@@ -187,12 +187,12 @@ class Player:
         )
         embed.set_author(name = '❗ Lỗi')
         embed.set_footer(text = 'Tự động phát bài tiếp theo trong 3 giây.')
-        run(self.text_channel.send(embed = embed))
+        self.voice_client.loop.create_task(self.text_channel.send(embed = embed))
       self.error_block = 3
 
     for root, dirs, files in walk('.'):
       for f in files:
-        run(self.text_channel.send(root + ' ' + f))
+        self.voice_client.loop.create_task(self.text_channel.send(root + ' ' + f))
     
     self.next()
     self.is_playing = False
