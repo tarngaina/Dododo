@@ -1,4 +1,3 @@
-from os import getenv
 from random import shuffle
 
 from discord.ext import commands
@@ -232,15 +231,6 @@ async def _search(ctx, *, query):
   
 @bot.command(name = 'play', aliases = ['p', 'phát', 'phat'])
 async def _play(ctx, *, text):
-  if is_restarting():
-    embed = Embed(
-      title = 'Đợi 2 phút bạn, bot đang restart.',
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
-    return
-
   if not ctx.voice_client:
     if ctx.author.voice:
       await ctx.author.voice.channel.connect()
@@ -1030,15 +1020,6 @@ async def _save(ctx, *, pref = None):
 @bot.command(name = 'load', aliases = ['tải', 'tai'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _load(ctx, *, pref = None):
-  if is_restarting():
-    embed = Embed(
-      title = 'Đợi 2 phút bạn, bot đang restart.',
-      color = random_color()
-    )
-    embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
-    return
-  
   if not ctx.voice_client:
     if ctx.author.voice:
       await ctx.author.voice.channel.connect()
