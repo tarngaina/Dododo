@@ -190,10 +190,6 @@ class Player:
         self.voice_client.loop.create_task(self.text_channel.send(embed = embed))
       self.error_block = 3
 
-    for root, dirs, files in walk('.'):
-      for f in files:
-        self.voice_client.loop.create_task(self.text_channel.send(root + ' ' + f))
-    
     self.next()
     self.is_playing = False
     
