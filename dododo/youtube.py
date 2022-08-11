@@ -4,7 +4,7 @@ from traceback import format_exc as exc
 from re import compile, findall
 
 from discord import PCMVolumeTransformer, FFmpegPCMAudio
-from yt_dlp import YoutubeDL
+from youtube_dl import YoutubeDL
 
 from dododo.song import Song, Playlist
 from dododo.system import log
