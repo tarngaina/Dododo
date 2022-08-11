@@ -171,8 +171,11 @@ class Player:
       embed.set_footer(text = f'#️⃣ {self.current+1}/{len(self.songs)}')
       await self.text_channel.send(embed = embed, delete_after = float(song.duration + 3))
     if self.voice_client.is_playing():
+      print('called1')
       self.voice_client.stop()
+    print('called2')
     self.voice_client.play(audio_source, after = self.after_play)   
+    print('called3')
 
     
   def after_play(self, error = None):
