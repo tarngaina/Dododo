@@ -1,6 +1,7 @@
 pip
 pytz
-youtube_dl
+yt-dlp
 PyNaCl
 discord.py[voice]
 dislash.py
+ffmpeg
