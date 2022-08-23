@@ -3,5 +3,5 @@ pytz
 yt-dlp
 PyNaCl
 discord.py[voice]
-dislash.py
+dislash.py==1.7.3
 ffmpeg
