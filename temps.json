@@ -1,0 +1,28 @@
+{
+  "853504661268856836": {
+    "text_channel_id": "853504661268856835",
+    "loop": "0",
+    "current": "1",
+    "songs": [
+      {
+        "title": "Yasuha - Flyday Chinatown",
+        "uploader": "Musical Collection",
+        "duration": 209,
+        "url": "https://youtu.be/4X7ZvpwBiKA"
+      }
+    ]
+  },
+  "1118548537316229161": {
+    "text_channel_id": "772299133280583713",
+    "loop": "0",
+    "current": "0",
+    "songs": [
+      {
+        "title": "80s japanese city pop playlist",
+        "uploader": "rainbeary",
+        "duration": 3693,
+        "url": "https://youtu.be/WCCovrKvAtU"
+      }
+    ]
+  }
+}

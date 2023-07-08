@@ -1,8 +1,8 @@
 from random import shuffle
 
+from discord import Bot
 from discord.ext import commands
 from discord import User, Embed, Intents, Activity, ActivityType
-from dislash import InteractionClient, SelectMenu, SelectOption, ActionRow, Button, ButtonStyle
 from asyncio import sleep
 from traceback import format_exc as exc, format_tb
 
@@ -14,9 +14,7 @@ from dododo.system import TOKEN, prepare as system_prepare, log
 from dododo.util import to_int, random_color, Page
 
 
-bot = commands.Bot(command_prefix = ['#', '$', '-'], case_insensitive = True, intents = Intents.all())
-bot.remove_command('help')
-inter_bot = InteractionClient(bot)
+bot = Bot()
 
 
 @bot.event
@@ -48,14 +46,14 @@ async def on_command_error(ctx, error):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
   elif isinstance(error, commands.CommandOnCooldown):
     embed = Embed(
       title = f'Thử lại sau {error.retry_after:.2f} giây.',
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
   else:
     msg = f'{error}'
     await log(msg)
@@ -77,7 +75,7 @@ async def on_voice_state_update(member, before, after):
     p.member = len(p.voice_client.channel.members)
 
 
-@bot.command(name = 'help', aliases = ['h', 'giúp', 'giup'])
+@bot.slash_command(name = 'help', aliases = ['h', 'giúp', 'giup'])
 async def _help(ctx):
   def create_embed(page):
     embed = Embed(
@@ -111,7 +109,7 @@ async def _help(ctx):
     return embed
   
   page = Page(
-    message = await ctx.send(
+    message = await ctx.respond(
       embed = create_embed(1), 
       components = [
         ActionRow(
@@ -153,7 +151,7 @@ async def _help(ctx):
     await page.message.edit(components=[])
 
 
-@bot.command(name = 'join', aliases = ['j', 'vào', 'vao'])
+@bot.slash_command(name = 'join', aliases = ['j', 'vào', 'vao'])
 async def _join(ctx):
   if not ctx.author.voice:
     embed = Embed(
@@ -161,22 +159,22 @@ async def _join(ctx):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed)
+    await ctx.respond(embed)
     return
   
   await ctx.author.voice.channel.connect()
-  await ctx.message.add_reaction('✅')
+  await ctx.respond('✅')
   
   
-@bot.command(name = 'leave', aliases = ['l', 'thoát', 'thoat'])
+@bot.slash_command(name = 'leave', aliases = ['l', 'thoát', 'thoat'])
 async def _leave(ctx):
   for voice_client in bot.voice_clients:
     if voice_client.guild.id == ctx.author.guild.id:
       await voice_client.disconnect()
-      await ctx.message.add_reaction('❎')
+      await ctx.respond('❎')
 
       
-@bot.command(name = 'search', aliases = ['s', 'find', 'f', 'tìm', 'tim'])
+@bot.slash_command(name = 'search', aliases = ['s', 'find', 'f', 'tìm', 'tim'])
 async def _search(ctx, *, query):  
   if (query == None) or (query == ''):
     embed = Embed(
@@ -184,7 +182,7 @@ async def _search(ctx, *, query):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
   res, urls = youtube_search(query)
@@ -194,7 +192,7 @@ async def _search(ctx, *, query):
       title = msg,
       color = random_color()
     )
-    await ctx.send(embed)
+    await ctx.respond(embed)
     return
   
   options = []
@@ -218,7 +216,7 @@ async def _search(ctx, *, query):
     title = f'Tìm thấy {len(options)} bài.',
     color = random_color()
   )
-  message = await ctx.send(embed = embed, components = components, delete_after = 60)
+  message = await ctx.respond(embed = embed, components = components, delete_after = 60)
 
   try:
     inter = await message.wait_for_dropdown(timeout = 300)
@@ -229,8 +227,9 @@ async def _search(ctx, *, query):
     return
 
   
-@bot.command(name = 'play', aliases = ['p', 'phát', 'phat'])
+@bot.slash_command(name = 'play', aliases = ['p', 'phát', 'phat'])
 async def _play(ctx, *, text):
+  await ctx.defer()
   if not ctx.voice_client:
     if ctx.author.voice:
       await ctx.author.voice.channel.connect()
@@ -240,7 +239,7 @@ async def _play(ctx, *, text):
         color = random_color()
       )
       embed.set_author(name = '❗ Lỗi')
-      await ctx.send(embed = embed)
+      await ctx.respond(embed = embed)
       return
     
   p = Player.get_player(ctx.author.guild.id)
@@ -250,7 +249,7 @@ async def _play(ctx, *, text):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   if (text == None) or (text == ''):
@@ -259,7 +258,7 @@ async def _play(ctx, *, text):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   songs = []
@@ -274,7 +273,7 @@ async def _play(ctx, *, text):
             color = random_color()
           )
           embed.set_author(name = '❗ Lỗi')
-          await ctx.send(embed = embed)
+          await ctx.respond(embed = embed)
           return
       else:
         res, songs = await download_info(text)
@@ -284,7 +283,7 @@ async def _play(ctx, *, text):
             color = random_color()
           )
           embed.set_author(name = '❗ Lỗi')
-          await ctx.send(embed = embed)
+          await ctx.respond(embed = embed)
           return
         songs = [songs]
     else:
@@ -294,7 +293,7 @@ async def _play(ctx, *, text):
           color = random_color()
         )
         embed.set_author(name = '❗ Lỗi')
-        await ctx.send(embed = embed)
+        await ctx.respond(embed = embed)
         return
       else:
         res, urls = youtube_search(text)
@@ -304,7 +303,7 @@ async def _play(ctx, *, text):
             color = random_color()
           )
           embed.set_author(name = '❗ Lỗi')
-          await ctx.send(embed = embed)
+          await ctx.respond(embed = embed)
           return
         res, songs = await download_info(urls[0])
         if not res:
@@ -313,7 +312,7 @@ async def _play(ctx, *, text):
             color = random_color()
           )
           embed.set_author(name = '❗ Lỗi')
-          await ctx.send(embed = embed)
+          await ctx.respond(embed = embed)
           return
         songs = [songs]
           
@@ -323,7 +322,7 @@ async def _play(ctx, *, text):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
   if len(songs) == 1:
@@ -337,7 +336,7 @@ async def _play(ctx, *, text):
     if songs[0].thumbnail:
       embed.set_thumbnail(url = songs[0].thumbnail)
     embed.set_footer(text = f'#️⃣ {len(p.songs)+1}/{len(p.songs)+1}')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
   else:
     embed = Embed(
       title = f'🎵 {len(songs)} bài trong 📄 {playlist.fixed_title()} 👤 {playlist.fixed_uploader()}',
@@ -347,12 +346,12 @@ async def _play(ctx, *, text):
     embed.set_thumbnail(url = playlist.thumbnail)
     embed.set_author(name = '⏏️ Đang chờ phát')
     embed.set_footer(text = f'#️⃣ {len(p.songs)+1}/{len(p.songs)+len(songs)}')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
   p.text_channel = ctx.channel
   p.songs += songs
 
 
-@bot.command(name = 'back', aliases = ['prev', 'previous', 'bacc', 'lùi', 'lui'])
+@bot.slash_command(name = 'back', aliases = ['prev', 'previous', 'bacc', 'lùi', 'lui'])
 async def _back(ctx, response = True):
   p = Player.get_player(ctx.author.guild.id)
   if not p:
@@ -365,10 +364,10 @@ async def _back(ctx, response = True):
       p.current -= 2
     p.voice_client.stop()
   if response:
-    await ctx.message.add_reaction('⏮')
+    await ctx.respond('⏮')
 
   
-@bot.command(name = 'skip', aliases = ['next', 'tới', 'toi'])
+@bot.slash_command(name = 'skip', aliases = ['next', 'tới', 'toi'])
 async def _skip(ctx, response = True):
   p = Player.get_player(ctx.author.guild.id)
   if not p:
@@ -377,10 +376,10 @@ async def _skip(ctx, response = True):
   if p.voice_client.is_playing():
     p.voice_client.stop()
   if response:
-    await ctx.message.add_reaction('⏭️')
+    await ctx.respond('⏭️')
     
 
-@bot.command(name = 'current', aliases = ['c', 'now', 'info', 'i', 'đang', 'dang'])
+@bot.slash_command(name = 'current', aliases = ['c', 'now', 'info', 'i', 'đang', 'dang'])
 async def _current(ctx):
   def create_embed(p):
     if len(p.songs) <= 0:
@@ -410,7 +409,7 @@ async def _current(ctx):
   if not p:
     return
 
-  message = await ctx.send(
+  message = await ctx.respond(
     embed = create_embed(p), 
     components = [
       ActionRow(
@@ -520,7 +519,7 @@ async def _current(ctx):
     await message.edit(components=[])
 
 
-@bot.command(name = 'jump', aliases = ['move', 'nhảy', 'nhay'])
+@bot.slash_command(name = 'jump', aliases = ['move', 'nhảy', 'nhay'])
 async def _jump(ctx, param = None):
   p = Player.get_player(ctx.author.guild.id)
   if not p:
@@ -531,7 +530,7 @@ async def _jump(ctx, param = None):
       title = 'Không có bài nào.',
       color = random_color()
     )
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   if param == None:
@@ -540,7 +539,7 @@ async def _jump(ctx, param = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
   res, i = to_int(param)
@@ -550,7 +549,7 @@ async def _jump(ctx, param = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
     
   i -= 1
@@ -561,7 +560,7 @@ async def _jump(ctx, param = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
     
     
@@ -570,10 +569,10 @@ async def _jump(ctx, param = None):
     p.voice_client.stop()
   else:
     p.current = i
-  await ctx.message.add_reaction('⤵️')
+  await ctx.respond('⤵️')
       
      
-@bot.command(name = 'queue', aliases = ['q', 'playlist', 'all', 'chờ', 'cho'])
+@bot.slash_command(name = 'queue', aliases = ['q', 'playlist', 'all', 'chờ', 'cho'])
 async def _queue(ctx):
   def create_embed(current_page, max_page): 
     embed = Embed(
@@ -658,7 +657,7 @@ async def _queue(ctx):
       title = 'Không có bài nào.',
       color = random_color()
     )
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
 
@@ -666,7 +665,7 @@ async def _queue(ctx):
   max_page = (len(p.songs)-1) // 5 + 1
   
   page = Page(
-    message = await ctx.send(
+    message = await ctx.respond(
       embed = create_embed(current_page, max_page),
       components = create_components(p.loop)
     ),
@@ -803,7 +802,7 @@ async def _queue(ctx):
     await page.message.edit(components=[])
 
 
-@bot.command(name = 'clear', aliases = ['clean', 'nghỉ', 'nghi'])
+@bot.slash_command(name = 'clear', aliases = ['clean', 'nghỉ', 'nghi'])
 async def _clear(ctx, response = True):
   p = Player.get_player(ctx.author.guild.id)
   if not p:
@@ -815,10 +814,10 @@ async def _clear(ctx, response = True):
     p.voice_client.stop()
   p.current = 0
   if response:
-    await ctx.message.add_reaction('⏹️')
+    await ctx.respond('⏹️')
   
 
-@bot.command(name = 'remove', aliases = ['delete', 'xóa', 'xoá', 'xoa'])
+@bot.slash_command(name = 'remove', aliases = ['delete', 'xóa', 'xoá', 'xoa'])
 async def _remove(ctx, param = None):
   p = Player.get_player(ctx.author.guild.id)
   if not p:
@@ -828,7 +827,7 @@ async def _remove(ctx, param = None):
       title = 'Không có bài nào.',
       color = random_color()
     ) 
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   if param == None:
     embed = Embed(
@@ -836,7 +835,7 @@ async def _remove(ctx, param = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   res, i = to_int(param)
@@ -846,7 +845,7 @@ async def _remove(ctx, param = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   i -= 1
   if (i < 0) or (i >= len(p.songs)):
@@ -856,7 +855,7 @@ async def _remove(ctx, param = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   song = p.songs.pop(i)
@@ -874,10 +873,10 @@ async def _remove(ctx, param = None):
   if song.thumbnail:
     embed.set_thumbnail(url = song.thumbnail)
   embed.set_author(name = '🧹 Đã xóa')
-  await ctx.send(embed = embed)
+  await ctx.respond(embed = embed)
   
   
-@bot.command(name = 'pause', aliases = ['stop', 'dừng', 'dung'])
+@bot.slash_command(name = 'pause', aliases = ['stop', 'dừng', 'dung'])
 async def _pause(ctx, response = True):
   p = Player.get_player(ctx.author.guild.id)
   if not p:
@@ -885,10 +884,10 @@ async def _pause(ctx, response = True):
   if not p.voice_client.is_paused():
     p.voice_client.pause()
   if response:
-    await ctx.message.add_reaction('⏸️')
+    await ctx.respond('⏸️')
 
     
-@bot.command(name = 'resume', aliases = ['continue', 'tiếp', 'tiep'])
+@bot.slash_command(name = 'resume', aliases = ['continue', 'tiếp', 'tiep'])
 async def _resume(ctx, response = True):
   p = Player.get_player(ctx.author.guild.id)
   if not p:
@@ -896,10 +895,10 @@ async def _resume(ctx, response = True):
   if p.voice_client.is_paused():
     p.voice_client.resume()
   if response:
-    await ctx.message.add_reaction('▶️')
+    await ctx.respond('▶️')
 
     
-@bot.command(name = 'loop', aliases = ['repeat', 'lặp', 'lap'])
+@bot.slash_command(name = 'loop', aliases = ['repeat', 'lặp', 'lap'])
 async def _loop(ctx, *, param = None, response = True):
   p = Player.get_player(ctx.author.guild.id)
   if not p:
@@ -927,7 +926,7 @@ async def _loop(ctx, *, param = None, response = True):
         color = random_color()
       )
       embed.set_author(name = '❗ Lỗi')
-      await ctx.send(embed = embed)
+      await ctx.respond(embed = embed)
       return
   rc = '↩️'
   if p.loop == 1:
@@ -935,10 +934,10 @@ async def _loop(ctx, *, param = None, response = True):
   if p.loop == 2:
     rc = '🔁'
   if response:
-    await ctx.message.add_reaction(rc)
+    await ctx.respond(rc)
   
   
-@bot.command(name = 'shuffle', aliases = ['trộn', 'tron'])
+@bot.slash_command(name = 'shuffle', aliases = ['trộn', 'tron'])
 async def _shuffle(ctx, response = True):
   p = Player.get_player(ctx.author.guild.id)
   if not p:
@@ -948,7 +947,7 @@ async def _shuffle(ctx, response = True):
       title = 'Không có bài nào.',
       color = random_color()
     )
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   shuffle(p.songs)
@@ -958,10 +957,10 @@ async def _shuffle(ctx, response = True):
   else:
     p.current = 0
   if response:
-    await ctx.message.add_reaction('🔀')
+    await ctx.respond('🔀')
     
     
-@bot.command(name = 'save', aliases = ['lưu', 'luu'])
+@bot.slash_command(name = 'save', aliases = ['lưu', 'luu'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _save(ctx, *, pref = None):
   p = Player.get_player(ctx.author.guild.id)
@@ -973,7 +972,7 @@ async def _save(ctx, *, pref = None):
       title = 'Không có bài nào.',
       color = random_color()
     )
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   if (pref == None) or (pref == ''):
@@ -982,7 +981,7 @@ async def _save(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   
@@ -993,7 +992,7 @@ async def _save(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
   pref = str(pref)
@@ -1011,13 +1010,13 @@ async def _save(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
-  await ctx.message.add_reaction('📄')
+  await ctx.respond('📄')
   
   
-@bot.command(name = 'load', aliases = ['tải', 'tai'])
+@bot.slash_command(name = 'load', aliases = ['tải', 'tai'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _load(ctx, *, pref = None):
   if not ctx.voice_client:
@@ -1029,7 +1028,7 @@ async def _load(ctx, *, pref = None):
         color = random_color()
       )
       embed.set_author(name = '❗ Lỗi')
-      await ctx.send(embed = embed)
+      await ctx.respond(embed = embed)
       return
       
   p = Player.get_player(ctx.author.guild.id)
@@ -1039,7 +1038,7 @@ async def _load(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
   res, prefs = await resource_load('prefs.json')
@@ -1049,7 +1048,7 @@ async def _load(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   pref = str(pref)
@@ -1061,7 +1060,7 @@ async def _load(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   if (pref == 'None') or (pref == '') or (pref not in prefs[key]):
@@ -1071,7 +1070,7 @@ async def _load(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
   songs = []
@@ -1085,12 +1084,12 @@ async def _load(ctx, *, pref = None):
   )
   embed.set_author(name = '⏏️ Đang chờ phát')
   embed.set_footer(text = f'{len(p.songs)+1}/{len(p.songs)+len(songs)}')
-  await ctx.send(embed = embed)
+  await ctx.respond(embed = embed)
   p.text_channel = ctx.channel
   p.songs += songs
   
   
-@bot.command(name = 'forget', aliases = ['bỏ', 'bo'])
+@bot.slash_command(name = 'forget', aliases = ['bỏ', 'bo'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _forget(ctx, *, pref = None):
   res, prefs = await resource_load('prefs.json')
@@ -1100,7 +1099,7 @@ async def _forget(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
   pref = str(pref)
@@ -1111,7 +1110,7 @@ async def _forget(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   if (pref == 'None') or (pref == '') or (pref not in prefs[key]):
@@ -1121,7 +1120,7 @@ async def _forget(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   prefs[key].pop(pref, None)
@@ -1133,13 +1132,13 @@ async def _forget(ctx, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
-  await ctx.message.add_reaction('📄')
+  await ctx.respond('📄')
     
 
-@bot.command(name = 'copy', aliases = ['chép', 'chep'])
+@bot.slash_command(name = 'copy', aliases = ['chép', 'chep'])
 @commands.cooldown(1, 3, commands.BucketType.guild)
 async def _copy(ctx, user: User, *, pref = None):
   res, prefs = await resource_load('prefs.json')
@@ -1149,7 +1148,7 @@ async def _copy(ctx, user: User, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   pref = str(pref)
@@ -1161,7 +1160,7 @@ async def _copy(ctx, user: User, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
   
   if (pref == 'None') or (pref == '') or (pref not in prefs[key]):
@@ -1171,7 +1170,7 @@ async def _copy(ctx, user: User, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
   prefs[str(ctx.author.id)][pref] = prefs[key][pref]
@@ -1183,10 +1182,10 @@ async def _copy(ctx, user: User, *, pref = None):
       color = random_color()
     )
     embed.set_author(name = '❗ Lỗi')
-    await ctx.send(embed = embed)
+    await ctx.respond(embed = embed)
     return
 
-  await ctx.message.add_reaction('📄')
+  await ctx.respond('📄')
 
     
 bot.run(TOKEN)

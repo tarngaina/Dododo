@@ -6,7 +6,7 @@ from discord import File
 from dododo.util import now_str
 
 
-TOKEN = getenv('token')
+TOKEN = getenv('TOKEN')
 LOG_CHANNEL_ID = 891652708975673354
 log_channel = None
 

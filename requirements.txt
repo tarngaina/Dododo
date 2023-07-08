@@ -1,7 +1,5 @@
 pip
 pytz
 yt-dlp
-PyNaCl
-discord.py[voice]==1.7.3
-dislash.py
-ffmpeg
+py-cord[voice]
+py-cord[speed]
